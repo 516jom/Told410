@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>L-410 NG Performance Calculator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        aviation: {
+                            bg: '#080c14',
+                            panel: '#121a2a',
+                            border: '#233248',
+                            accent: '#0ea5e9',
+                            danger: '#ef4444',
+                            success: '#10b981',
+                            warning: '#f59e0b',
+                            text: '#f8fafc',
+                            muted: '#94a3b8'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: theme('colors.aviation.bg');
+            color: theme('colors.aviation.text');
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Controles deslizantes (Sliders) para uso en iPad */
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: transparent;
+            margin: 14px 0;
+        }
+        input[type=range]:focus {
+            outline: none;
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 10px;
+            cursor: pointer;
+            background: theme('colors.aviation.border');
+            border-radius: 5px;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            height: 32px;
+            width: 32px;
+            border-radius: 50%;
+            background: theme('colors.aviation.accent');
+            cursor: pointer;
+            -webkit-appearance: none;
+            margin-top: -11px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 0 15px rgba(14, 165, 233, 0.4);
+            border: 3px solid theme('colors.aviation.bg');
+            transition: transform 0.1s;
+        }
+        input[type=range]::-webkit-slider-thumb:active {
+            transform: scale(1.1);
+        }
+        
+        /* Ocultar flechas en los inputs numéricos */
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { 
+            -webkit-appearance: none; 
+            margin: 0; 
+        }
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
+
+        /* Scrollbar estilo aviónica */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: theme('colors.aviation.bg');
+        }
+        ::-webkit-scrollbar-thumb {
+            background: theme('colors.aviation.border');
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col antialiased selection:bg-aviation-accent selection:text-white">
+
+    <!-- Cabecera -->
+    <header class="bg-aviation-panel border-b border-aviation-border px-6 py-4 flex items-center justify-between sticky top-0 z-30 shadow-md">
+        <div class="flex items-center gap-4">
+            <svg class="w-8 h-8 text-aviation-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+            </svg>
+            <div>
+                <h1 class="text-xl md:text-2xl font-bold tracking-tight text-white">LET L-410 NG</h1>
+                <p class="text-[10px] md:text-xs text-aviation-muted font-medium tracking-widest uppercase">Performance Dashboard</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-3">
+            <span class="inline-flex items-center rounded bg-aviation-bg px-2.5 py-1 text-xs font-bold text-emerald-400 border border-aviation-border shadow-inner">FLAPS 18°</span>
+        </div>
+    </header>
+
+    <!-- Contenido Principal -->
+    <main class="flex-grow p-4 md:p-6 max-w-[1400px] mx-auto w-full">
+        <div class="grid grid-cols-1 xl:grid-cols-12 gap-6">
+            
+            <!-- PANEL IZQUIERDO: CONTROLES / INPUTS -->
+            <section class="xl:col-span-5 flex flex-col gap-6 overflow-y-auto pb-10">
+                
+                <!-- 1. Configuración del Avión -->
+                <div class="bg-aviation-panel p-5 rounded-2xl border border-aviation-border shadow-lg relative overflow-hidden">
+                    <div class="absolute top-0 left-0 w-1 h-full bg-aviation-accent"></div>
+                    <h2 class="text-xs font-bold text-aviation-muted uppercase tracking-wider mb-5 flex items-center gap-2">
+                        <svg class="w-4 h-4 text-aviation-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+                        Aircraft Configuration
+                    </h2>
+                    
+                    <div class="space-y-6">
+                        <!-- Peso de Despegue -->
+                        <div>
+                            <div class="flex justify-between items-end mb-1">
+                                <label class="block text-sm font-semibold text-slate-200">Take-off Weight (TOW)</label>
+                                <div class="flex items-center gap-2">
+                                    <input type="number" id="weight-num" value="6500" min="5000" max="7000" step="10" 
+                                           class="w-24 bg-aviation-bg text-right text-lg font-mono font-bold text-white border border-aviation-border rounded-lg py-1 px-3 focus:outline-none focus:border-aviation-accent focus:ring-1 focus:ring-aviation-accent transition-all">
+                                    <span class="text-xs font-medium text-aviation-muted w-6">kg</span>
+                                </div>
+                            </div>
+                            <input type="range" id="weight-range" value="6500" min="5000" max="7000" step="10">
+                            <div class="flex justify-between text-[10px] text-aviation-muted font-mono font-medium"><span>5000</span><span>7000</span></div>
+                        </div>
+
+                        <!-- Ratio V1/VR (Manual) -->
+                        <div class="bg-aviation-bg/50 p-4 rounded-xl border border-aviation-border/50">
+                            <div class="flex justify-between items-end mb-1">
+                                <div>
+                                    <label class="block text-sm font-semibold text-slate-200 text-amber-400">V₁/Vʀ Ratio</label>
+                                    <p class="text-[10px] text-aviation-muted leading-tight mt-1">Lower values prioritize Abort (ASD),<br>but increase Take-off Distance (TOD).</p>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <input type="number" id="ratio-num" value="1.00" min="0.80" max="1.00" step="0.01" 
+                                           class="w-20 bg-aviation-bg text-right text-lg font-mono font-bold text-amber-400 border border-aviation-border rounded-lg py-1 px-3 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition-all">
+                                </div>
+                            </div>
+                            <input type="range" id="ratio-range" value="1.00" min="0.80" max="1.00" step="0.01" class="accent-amber-400">
+                            <div class="flex justify-between text-[10px] text-aviation-muted font-mono font-medium"><span>0.80 (Min V1)</span><span>1.00 (Balanced)</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. Condiciones Atmosféricas -->
+                <div class="bg-aviation-panel p-5 rounded-2xl border border-aviation-border shadow-lg relative overflow-hidden">
+                    <div class="absolute top-0 left-0 w-1 h-full bg-emerald-500"></div>
+                    <div class="flex justify-between items-center mb-5">
+                        <h2 class="text-xs font-bold text-aviation-muted uppercase tracking-wider flex items-center gap-2">
+                            <svg class="w-4 h-4 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"/></svg>
+                            Atmospheric Data
+                        </h2>
+                        <div class="bg-aviation-bg px-3 py-1.5 rounded-md border border-aviation-border flex items-center gap-2 shadow-inner">
+                            <span class="text-[10px] font-bold text-aviation-muted uppercase">PA:</span>
+                            <span id="display-pa" class="font-mono text-sm text-emerald-400 font-bold">0 ft</span>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-6">
+                        <!-- QNH -->
+                        <div>
+                            <div class="flex justify-between items-end mb-1">
+                                <label class="block text-sm font-semibold text-slate-200">Altimeter (QNH)</label>
+                                <div class="flex items-center gap-2">
+                                    <input type="number" id="qnh-num" value="1013" min="950" max="1050" step="1" 
+                                           class="w-24 bg-aviation-bg text-right text-lg font-mono font-bold text-white border border-aviation-border rounded-lg py-1 px-3 focus:outline-none focus:border-emerald-500 transition-all">
+                                    <span class="text-xs font-medium text-aviation-muted w-8">hPa</span>
+                                </div>
+                            </div>
+                            <input type="range" id="qnh-range" value="1013" min="950" max="1050" step="1">
+                        </div>
+
+                        <!-- Elevación -->
+                        <div>
+                            <div class="flex justify-between items-end mb-1">
+                                <label class="block text-sm font-semibold text-slate-200">Airport Elevation</label>
+                                <div class="flex items-center gap-2">
+                                    <input type="number" id="elev-num" value="0" min="0" max="15000" step="100" 
+                                           class="w-24 bg-aviation-bg text-right text-lg font-mono font-bold text-white border border-aviation-border rounded-lg py-1 px-3 focus:outline-none focus:border-emerald-500 transition-all">
+                                    <span class="text-xs font-medium text-aviation-muted w-8">ft</span>
+                                </div>
+                            </div>
+                            <input type="range" id="elev-range" value="0" min="0" max="15000" step="100">
+                        </div>
+
+                        <!-- Temperatura -->
+                        <div>
+                            <div class="flex justify-between items-end mb-1">
+                                <label class="block text-sm font-semibold text-slate-200">Outside Air Temp (OAT)</label>
+                                <div class="flex items-center gap-2">
+                                    <input type="number" id="oat-num" value="15" min="-30" max="50" step="1" 
+                                           class="w-24 bg-aviation-bg text-right text-lg font-mono font-bold text-white border border-aviation-border rounded-lg py-1 px-3 focus:outline-none focus:border-emerald-500 transition-all">
+                                    <span class="text-xs font-medium text-aviation-muted w-8">°C</span>
+                                </div>
+                            </div>
+                            <input type="range" id="oat-range" value="15" min="-30" max="50" step="1">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. Parámetros de la Pista (Runway) -->
+                <div class="bg-aviation-panel p-5 rounded-2xl border border-aviation-border shadow-lg relative overflow-hidden">
+                    <div class="absolute top-0 left-0 w-1 h-full bg-indigo-500"></div>
+                    <h2 class="text-xs font-bold text-aviation-muted uppercase tracking-wider mb-5 flex items-center gap-2">
+                        <svg class="w-4 h-4 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>
+                        Runway Details & Field Lengths
+                    </h2>
+                    
+                    <div class="space-y-6">
+                        <!-- Viento y Pendiente -->
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-300 mb-1">Wind (kts)</label>
+                                <div class="relative">
+                                    <input type="number" id="wind-num" value="0" min="-10" max="40" step="1" 
+                                           class="w-full bg-aviation-bg text-center text-lg font-mono font-bold text-white border border-aviation-border rounded-lg py-2 focus:outline-none focus:border-indigo-500 transition-all">
+                                    <div id="wind-badge" class="absolute -top-2 -right-2 text-[9px] font-bold px-1.5 py-0.5 rounded bg-slate-700 text-slate-300 border border-slate-600">CALM</div>
+                                </div>
+                                <input type="range" id="wind-range" value="0" min="-10" max="40" step="1" class="mt-3">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-300 mb-1">Slope (%)</label>
+                                <input type="number" id="slope-num" value="0" min="-5" max="5" step="0.1" 
+                                       class="w-full bg-aviation-bg text-center text-lg font-mono font-bold text-white border border-aviation-border rounded-lg py-2 focus:outline-none focus:border-indigo-500 transition-all">
+                                <input type="range" id="slope-range" value="0" min="-5" max="5" step="0.1" class="mt-3">
+                                <div id="slope-warning" class="hidden mt-2 p-2 bg-amber-900/60 border border-amber-500 rounded text-[9px] text-amber-200 leading-tight shadow-md">
+                                    <span class="font-bold text-amber-400">CAUTION:</span> AFM explicitly prohibits extrapolation of runway slope beyond ±2%. Data shown is uncertified mathematical projection.
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr class="border-aviation-border">
+
+                        <!-- Distancias Declaradas -->
+                        <div class="grid grid-cols-3 gap-3">
+                            <div>
+                                <label class="block text-[10px] text-aviation-muted font-bold uppercase mb-1 text-center">TORA (m)</label>
+                                <input type="number" id="tora-num" value="1500" min="0" max="3000" step="10" 
+                                       class="w-full bg-aviation-bg text-center text-base font-mono font-bold text-slate-200 border border-aviation-border rounded-lg py-2 focus:outline-none focus:border-indigo-500 transition-all">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] text-aviation-muted font-bold uppercase mb-1 text-center">TODA (m)</label>
+                                <input type="number" id="toda-num" value="1600" min="0" max="3000" step="10" 
+                                       class="w-full bg-aviation-bg text-center text-base font-mono font-bold text-slate-200 border border-aviation-border rounded-lg py-2 focus:outline-none focus:border-indigo-500 transition-all">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] text-aviation-muted font-bold uppercase mb-1 text-center">ASDA (m)</label>
+                                <input type="number" id="asda-num" value="1550" min="0" max="3000" step="10" 
+                                       class="w-full bg-aviation-bg text-center text-base font-mono font-bold text-slate-200 border border-aviation-border rounded-lg py-2 focus:outline-none focus:border-indigo-500 transition-all">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- PANEL DERECHO: RESULTADOS / OUTPUTS -->
+            <section class="xl:col-span-7 flex flex-col gap-6 xl:sticky xl:top-24 xl:h-[calc(100vh-8rem)]">
+                
+                <!-- ALERTA DE SEGURIDAD (Se muestra si se excede la pista) -->
+                <div id="safety-warning" class="hidden bg-red-950/40 border border-red-500/50 rounded-xl p-4 shadow-[0_0_15px_rgba(239,68,68,0.2)] animate-pulse transition-all duration-300">
+                    <div class="flex items-start gap-4">
+                        <div class="bg-red-500/20 p-2 rounded-full">
+                            <svg class="h-8 w-8 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="text-red-400 font-bold text-lg uppercase tracking-wider">TAKE-OFF FIELD LENGTH EXCEEDED</h3>
+                            <p class="text-red-200/80 text-sm mt-1">The calculated distances exceed the available declared runway (TORA/TODA/ASDA). <br><strong>Action:</strong> Reduce TOW, increase V1/VR ratio, or wait for better conditions.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tarjetas de Velocidades (V-Speeds) -->
+                <div class="bg-aviation-panel p-6 rounded-2xl border border-aviation-border shadow-xl">
+                    <h2 class="text-xs font-bold text-aviation-muted uppercase tracking-wider mb-6 flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                        Airspeeds (KIAS)
+                    </h2>
+                    
+                    <div class="grid grid-cols-3 gap-4 lg:gap-6">
+                        <!-- V1 -->
+                        <div class="bg-aviation-bg rounded-xl p-5 border border-slate-700/50 flex flex-col items-center justify-center relative overflow-hidden group shadow-inner">
+                            <div class="absolute inset-0 bg-gradient-to-b from-blue-500/10 to-transparent"></div>
+                            <span class="text-slate-400 font-bold text-sm mb-1 relative z-10">V₁ <span class="font-normal text-[10px] ml-1">(Decision)</span></span>
+                            <div class="flex items-end gap-1 relative z-10">
+                                <span id="out-v1" class="text-5xl lg:text-6xl font-mono font-extrabold text-blue-400 tracking-tighter drop-shadow-[0_2px_10px_rgba(96,165,250,0.3)]">0</span>
+                            </div>
+                        </div>
+                        <!-- VR -->
+                        <div class="bg-aviation-bg rounded-xl p-5 border border-slate-700/50 flex flex-col items-center justify-center relative overflow-hidden group shadow-inner">
+                            <div class="absolute inset-0 bg-gradient-to-b from-emerald-500/10 to-transparent"></div>
+                            <span class="text-slate-400 font-bold text-sm mb-1 relative z-10">Vʀ <span class="font-normal text-[10px] ml-1">(Rotate)</span></span>
+                            <div class="flex items-end gap-1 relative z-10">
+                                <span id="out-vr" class="text-5xl lg:text-6xl font-mono font-extrabold text-emerald-400 tracking-tighter drop-shadow-[0_2px_10px_rgba(52,211,153,0.3)]">0</span>
+                            </div>
+                        </div>
+                        <!-- V2 -->
+                        <div class="bg-aviation-bg rounded-xl p-5 border border-slate-700/50 flex flex-col items-center justify-center relative overflow-hidden group shadow-inner">
+                            <div class="absolute inset-0 bg-gradient-to-b from-white/10 to-transparent"></div>
+                            <span class="text-slate-400 font-bold text-sm mb-1 relative z-10">V₂ <span class="font-normal text-[10px] ml-1">(Safety)</span></span>
+                            <div class="flex items-end gap-1 relative z-10">
+                                <span id="out-v2" class="text-5xl lg:text-6xl font-mono font-extrabold text-white tracking-tighter drop-shadow-[0_2px_10px_rgba(255,255,255,0.3)]">0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Gráficos de Distancias Requeridas vs Disponibles -->
+                <div class="bg-aviation-panel p-6 rounded-2xl border border-aviation-border shadow-xl flex-grow flex flex-col">
+                    <h2 class="text-xs font-bold text-aviation-muted uppercase tracking-wider mb-6 flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16"/></svg>
+                        Required Distances vs Declared (m)
+                    </h2>
+                    
+                    <div class="space-y-8 flex-grow flex flex-col justify-center">
+                        
+                        <!-- Take-Off Run (TOR) -->
+                        <div class="relative">
+                            <div class="flex justify-between items-end mb-2">
+                                <div>
+                                    <span class="block font-bold text-slate-200">Take-Off Run (TOR)</span>
+                                    <span class="text-[10px] text-aviation-muted uppercase">Limit: TORA</span>
+                                </div>
+                                <div class="text-right">
+                                    <div class="flex items-baseline justify-end gap-1">
+                                        <span id="out-tor" class="text-3xl font-mono font-bold text-white transition-colors duration-300">0</span>
+                                        <span class="text-sm text-aviation-muted font-mono">/ <span id="limit-tora">1500</span></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Barra de progreso -->
+                            <div class="w-full bg-aviation-bg rounded-full h-4 border border-aviation-border overflow-hidden relative shadow-inner">
+                                <div id="bar-tor" class="h-full rounded-full transition-all duration-500 shadow-[0_0_10px_rgba(0,0,0,0.5)]" style="width: 0%; background-color: #3b82f6;"></div>
+                                <!-- Marca de límite 100% -->
+                                <div class="absolute right-0 top-0 h-full w-0.5 bg-red-500 z-10"></div>
+                            </div>
+                        </div>
+
+                        <!-- Take-Off Distance (TOD) -->
+                        <div class="relative">
+                            <div class="flex justify-between items-end mb-2">
+                                <div>
+                                    <span class="block font-bold text-slate-200">Take-Off Distance (TOD)</span>
+                                    <span class="text-[10px] text-aviation-muted uppercase">Limit: TODA</span>
+                                </div>
+                                <div class="text-right">
+                                    <div class="flex items-baseline justify-end gap-1">
+                                        <span id="out-tod" class="text-3xl font-mono font-bold text-white transition-colors duration-300">0</span>
+                                        <span class="text-sm text-aviation-muted font-mono">/ <span id="limit-toda">1600</span></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="w-full bg-aviation-bg rounded-full h-4 border border-aviation-border overflow-hidden relative shadow-inner">
+                                <div id="bar-tod" class="h-full rounded-full transition-all duration-500 shadow-[0_0_10px_rgba(0,0,0,0.5)]" style="width: 0%; background-color: #10b981;"></div>
+                                <div class="absolute right-0 top-0 h-full w-0.5 bg-red-500 z-10"></div>
+                            </div>
+                        </div>
+
+                        <!-- Accelerate-Stop Distance (ASD) -->
+                        <div class="relative">
+                            <div class="flex justify-between items-end mb-2">
+                                <div>
+                                    <span class="block font-bold text-slate-200">Accel-Stop Distance (ASD)</span>
+                                    <span class="text-[10px] text-aviation-muted uppercase">Limit: ASDA</span>
+                                </div>
+                                <div class="text-right">
+                                    <div class="flex items-baseline justify-end gap-1">
+                                        <span id="out-asd" class="text-3xl font-mono font-bold text-white transition-colors duration-300">0</span>
+                                        <span class="text-sm text-aviation-muted font-mono">/ <span id="limit-asda">1550</span></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="w-full bg-aviation-bg rounded-full h-4 border border-aviation-border overflow-hidden relative shadow-inner">
+                                <div id="bar-asd" class="h-full rounded-full transition-all duration-500 shadow-[0_0_10px_rgba(0,0,0,0.5)]" style="width: 0%; background-color: #f59e0b;"></div>
+                                <div class="absolute right-0 top-0 h-full w-0.5 bg-red-500 z-10"></div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Lógica JavaScript (Cálculos de Performance L-410 NG) -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            // Array de todos los controles numéricos y sus respectivos sliders
+            const controls = ['weight', 'qnh', 'elev', 'oat', 'wind', 'slope', 'ratio'];
+            const fieldLimits = ['tora', 'toda', 'asda'];
+            
+            // Sincronizar inputs Numéricos <-> Sliders
+            controls.forEach(id => {
+                const num = document.getElementById(`${id}-num`);
+                const range = document.getElementById(`${id}-range`);
+                
+                num.addEventListener('input', (e) => {
+                    range.value = e.target.value;
+                    calculatePerformance();
+                });
+                range.addEventListener('input', (e) => {
+                    num.value = e.target.value;
+                    calculatePerformance();
+                });
+            });
+
+            // Escuchar cambios en las distancias declaradas
+            fieldLimits.forEach(id => {
+                document.getElementById(`${id}-num`).addEventListener('input', calculatePerformance);
+            });
+
+            // Formateador visual para etiqueta de viento (HEAD / TAIL)
+            function updateWindLabel(wind) {
+                const badge = document.getElementById('wind-badge');
+                if (wind < 0) {
+                    badge.textContent = `${Math.abs(wind)} TAIL`;
+                    badge.className = "absolute -top-2 -right-2 text-[9px] font-bold px-1.5 py-0.5 rounded bg-red-900/80 text-red-300 border border-red-700";
+                } else if (wind > 0) {
+                    badge.textContent = `${wind} HEAD`;
+                    badge.className = "absolute -top-2 -right-2 text-[9px] font-bold px-1.5 py-0.5 rounded bg-emerald-900/80 text-emerald-300 border border-emerald-700";
+                } else {
+                    badge.textContent = "CALM";
+                    badge.className = "absolute -top-2 -right-2 text-[9px] font-bold px-1.5 py-0.5 rounded bg-slate-700 text-slate-300 border border-slate-600";
+                }
+            }
+
+            // Aplicar colores y alertas a las barras de progreso
+            function applyWarningStatus(value, limit, outElement, barElement, defaultHexColor) {
+                // Actualizar texto
+                outElement.textContent = Math.round(value);
+                
+                // Calcular porcentaje visual (máx 100% para no desbordar div)
+                let pct = Math.min((value / limit) * 100, 100);
+                barElement.style.width = `${pct}%`;
+                
+                // Lógica de alerta
+                if (value > limit) {
+                    // Texto en rojo
+                    outElement.classList.replace('text-white', 'text-red-500');
+                    // Barra en rojo puro
+                    barElement.style.backgroundColor = '#ef4444'; 
+                    return true; // Retorna true indicando que hay una violación de límite
+                } else {
+                    // Restaurar texto blanco
+                    outElement.classList.replace('text-red-500', 'text-white');
+                    // Restaurar color original de la barra
+                    barElement.style.backgroundColor = defaultHexColor; 
+                    return false;
+                }
+            }
+
+            // --- MOTOR DE CÁLCULO PRINCIPAL ---
+            function calculatePerformance() {
+                // 1. Obtener valores de la UI
+                const weight = parseFloat(document.getElementById('weight-num').value) || 6500;
+                const qnh = parseFloat(document.getElementById('qnh-num').value) || 1013;
+                const elev = parseFloat(document.getElementById('elev-num').value) || 0;
+                const oat = parseFloat(document.getElementById('oat-num').value) || 15;
+                const wind = parseFloat(document.getElementById('wind-num').value) || 0;
+                const slope = parseFloat(document.getElementById('slope-num').value) || 0;
+                const ratio = parseFloat(document.getElementById('ratio-num').value) || 1.00;
+
+                const tora = parseFloat(document.getElementById('tora-num').value) || 1500;
+                const toda = parseFloat(document.getElementById('toda-num').value) || 1600;
+                const asda = parseFloat(document.getElementById('asda-num').value) || 1550;
+
+                updateWindLabel(wind);
+                
+                // Mostrar alerta de extrapolación si la pendiente excede +/- 2%
+                const slopeWarning = document.getElementById('slope-warning');
+                if (slope < -2.0 || slope > 2.0) {
+                    slopeWarning.classList.remove('hidden');
+                } else {
+                    slopeWarning.classList.add('hidden');
+                }
+                
+                // Actualizar etiquetas de límites
+                document.getElementById('limit-tora').textContent = tora;
+                document.getElementById('limit-toda').textContent = toda;
+                document.getElementById('limit-asda').textContent = asda;
+
+                // 2. Altitud de Presión (PA)
+                let pa = elev + (1013.25 - qnh) * 27.3;
+                pa = Math.round(pa);
+                document.getElementById('display-pa').textContent = `${pa} ft`;
+
+                // 3. Velocidades V (Speeds)
+                // Fórmula del manual provista: Base + max(0, corrección por peso arriba de 6200kg)
+                let vr = 80 + Math.max(0, (weight - 6200) * (5 / 800));
+                let v2 = 85 + Math.max(0, (weight - 6200) * (5 / 800));
+                // V1 es simplemente VR multiplicada por el Ratio elegido
+                let v1 = vr * ratio;
+
+                // 4. Cálculo Base de Distancias (Simulación de Matrices)
+                // Usamos un modelo polinomial de aproximación para las curvas base TOD
+                let baseTod = 600 + ((weight - 5000) * 0.15) + (pa * 0.03);
+                
+                // Penalización por alta temperatura (ISA > 15)
+                if (oat > 15) {
+                    baseTod += (oat - 15) * 5;
+                }
+
+                // Corrección por Viento (Headwind acorta distancia, Tailwind alarga más drásticamente)
+                let windCorr = wind > 0 ? (wind * -10) : (wind * -30);
+                
+                // Corrección por Pendiente (Slope)
+                let slopeCorr = slope * 50;
+
+                // Distancia Base Unificada (TOD teórico con V1/VR = 1.00)
+                let baseDist = Math.max(400, baseTod + windCorr + slopeCorr);
+
+                // 5. Aplicar el efecto del Ratio V1/VR (Trade-off Abort vs Continue)
+                // Si Ratio = 1.0 -> Multiplicador = 1.0
+                // Si Ratio < 1.0 -> ASD disminuye (frenas antes), pero TOD y TOR aumentan (aceleras más en OEI).
+                
+                // Impacto en ASD (Aceleración Parada): Un ratio de 0.8 reduce la ASD a un 80% aprox.
+                let asdMultiplier = ratio; 
+                
+                // Impacto en TOD (Distancia Despegue continuado): 
+                // Un ratio de 0.8 significa perder motor antes, por lo que aumenta mucho la distancia.
+                let todMultiplier = 1 + ((1 - ratio) * 1.5); 
+                
+                // Impacto en TOR (Carrera Despegue): Sigue la tendencia de TOD.
+                let torMultiplier = 1 + ((1 - ratio) * 1.2);
+
+                // Distancias Finales
+                let todCalc = baseDist * todMultiplier;
+                let torCalc = (baseDist * 0.85) * torMultiplier; // TOR base suele ser ~85% del TOD
+                let asdCalc = (baseDist * 1.20) * asdMultiplier; // ASD base suele ser ~120% del TOD
+
+                // 6. Actualizar Interfaz (UI)
+                document.getElementById('out-v1').textContent = Math.round(v1);
+                document.getElementById('out-vr').textContent = Math.round(vr);
+                document.getElementById('out-v2').textContent = Math.round(v2);
+
+                const outTor = document.getElementById('out-tor');
+                const outTod = document.getElementById('out-tod');
+                const outAsd = document.getElementById('out-asd');
+                
+                const barTor = document.getElementById('bar-tor');
+                const barTod = document.getElementById('bar-tod');
+                const barAsd = document.getElementById('bar-asd');
+
+                // Aplicar datos y chequear violaciones
+                let warnTor = applyWarningStatus(torCalc, tora, outTor, barTor, '#3b82f6'); // Tailwind blue-500
+                let warnTod = applyWarningStatus(todCalc, toda, outTod, barTod, '#10b981'); // Tailwind emerald-500
+                let warnAsd = applyWarningStatus(asdCalc, asda, outAsd, barAsd, '#f59e0b'); // Tailwind amber-500
+
+                // 7. Mostrar Banner Global de Advertencia
+                const warningBanner = document.getElementById('safety-warning');
+                if (warnTor || warnTod || warnAsd) {
+                    warningBanner.classList.remove('hidden');
+                } else {
+                    warningBanner.classList.add('hidden');
+                }
+            }
+
+            // Ejecutar cálculo al iniciar la página
+            calculatePerformance();
+        });
+    </script>
+</body>
+</html>
