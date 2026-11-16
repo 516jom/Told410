@@ -1,585 +1,1049 @@
-<!DOCTYPE html>
+<index>
 <html lang="es" class="dark">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>L-410 NG Performance Calculator</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
-    
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                        mono: ['JetBrains Mono', 'monospace'],
-                    },
-                    colors: {
-                        aviation: {
-                            bg: '#080c14',
-                            panel: '#121a2a',
-                            border: '#233248',
-                            accent: '#0ea5e9',
-                            danger: '#ef4444',
-                            success: '#10b981',
-                            warning: '#f59e0b',
-                            text: '#f8fafc',
-                            muted: '#94a3b8'
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-    <style>
-        body {
-            background-color: theme('colors.aviation.bg');
-            color: theme('colors.aviation.text');
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        /* Controles deslizantes (Sliders) para uso en iPad */
-        input[type=range] {
-            -webkit-appearance: none;
-            width: 100%;
-            background: transparent;
-            margin: 14px 0;
-        }
-        input[type=range]:focus {
-            outline: none;
-        }
-        input[type=range]::-webkit-slider-runnable-track {
-            width: 100%;
-            height: 10px;
-            cursor: pointer;
-            background: theme('colors.aviation.border');
-            border-radius: 5px;
-        }
-        input[type=range]::-webkit-slider-thumb {
-            height: 32px;
-            width: 32px;
-            border-radius: 50%;
-            background: theme('colors.aviation.accent');
-            cursor: pointer;
-            -webkit-appearance: none;
-            margin-top: -11px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 0 15px rgba(14, 165, 233, 0.4);
-            border: 3px solid theme('colors.aviation.bg');
-            transition: transform 0.1s;
-        }
-        input[type=range]::-webkit-slider-thumb:active {
-            transform: scale(1.1);
-        }
-        
-        /* Ocultar flechas en los inputs numéricos */
-        input[type=number]::-webkit-inner-spin-button, 
-        input[type=number]::-webkit-outer-spin-button { 
-            -webkit-appearance: none; 
-            margin: 0; 
-        }
-        input[type=number] {
-            -moz-appearance: textfield;
-        }
-
-        /* Scrollbar estilo aviónica */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: theme('colors.aviation.bg');
-        }
-        ::-webkit-scrollbar-thumb {
-            background: theme('colors.aviation.border');
-            border-radius: 4px;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>L-410 NG EFB Performance Suite (AFM Sec. 5)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      background-color: #090d16;
+      color: #f8fafc;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+    input[type="range"] {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 8px;
+      background: #1e293b;
+      border-radius: 6px;
+      outline: none;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: #38bdf8;
+      cursor: pointer;
+      border: 2px solid #0f172a;
+      box-shadow: 0 0 8px rgba(56, 189, 248, 0.5);
+    }
+    .avionics-card {
+      background: linear-gradient(145deg, #111827, #0b1120);
+      border: 1px solid #1e293b;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45);
+    }
+    .mono {
+      font-variant-numeric: tabular-nums;
+      font-family: "SF Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+  </style>
 </head>
-<body class="min-h-screen flex flex-col antialiased selection:bg-aviation-accent selection:text-white">
+<body class="min-h-screen p-3 md:p-5 select-none">
 
-    <!-- Cabecera -->
-    <header class="bg-aviation-panel border-b border-aviation-border px-6 py-4 flex items-center justify-between sticky top-0 z-30 shadow-md">
-        <div class="flex items-center gap-4">
-            <svg class="w-8 h-8 text-aviation-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-            </svg>
-            <div>
-                <h1 class="text-xl md:text-2xl font-bold tracking-tight text-white">LET L-410 NG</h1>
-                <p class="text-[10px] md:text-xs text-aviation-muted font-medium tracking-widest uppercase">Performance Dashboard</p>
+  <!-- Header & Navigation -->
+  <header class="max-w-7xl mx-auto mb-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3 border-b border-slate-800 pb-3">
+    <div>
+      <div class="flex items-center gap-2">
+        <span class="px-2 py-0.5 text-xs font-bold tracking-wider uppercase bg-sky-500/20 text-sky-400 border border-sky-500/30 rounded">LET L-410 NG</span>
+        <span class="text-xs text-slate-400 mono">AFM Do-L410NG-1210.2 • SEC. 5</span>
+      </div>
+      <h1 class="text-xl font-bold tracking-tight text-white mt-1">EFB Performance Suite</h1>
+    </div>
+
+    <div class="flex bg-slate-900 p-1 rounded-xl border border-slate-800 overflow-x-auto">
+      <button id="tab-takeoff" onclick="switchTab('takeoff')" class="px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition bg-sky-600 text-white shadow whitespace-nowrap">
+        TAKE-OFF (Flaps 18°)
+      </button>
+      <button id="tab-cruise" onclick="switchTab('cruise')" class="px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition text-slate-400 hover:text-white whitespace-nowrap">
+        CRUISE (Fig. 5-10)
+      </button>
+      <button id="tab-landing" onclick="switchTab('landing')" class="px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition text-slate-400 hover:text-white whitespace-nowrap">
+        LANDING (Flaps 42°)
+      </button>
+    </div>
+  </header>
+
+  <!-- ==================== 1. MÓDULO TAKE-OFF ==================== -->
+  <main id="view-takeoff" class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-4">
+    <section class="lg:col-span-6 space-y-3">
+      <div class="avionics-card rounded-2xl p-4 space-y-3">
+        <h2 class="text-xs font-bold uppercase tracking-wider text-sky-400">1. Aeródromo y Atmósfera</h2>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="text-xs text-slate-400 flex justify-between">
+              <span>Elevación [ft]</span>
+              <span id="val-elev" class="text-white font-bold mono">4,000 ft</span>
+            </label>
+            <input type="range" id="in-elev" min="0" max="13120" step="50" value="4000" oninput="calcTakeoff()" class="mt-2">
+          </div>
+          <div>
+            <label class="text-xs text-slate-400 flex justify-between">
+              <span>QNH [hPa]</span>
+              <span id="val-qnh" class="text-white font-bold mono">1013 hPa</span>
+            </label>
+            <input type="range" id="in-qnh" min="950" max="1050" step="1" value="1013" oninput="calcTakeoff()" class="mt-2">
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3 pt-1">
+          <div>
+            <label class="text-xs text-slate-400 flex justify-between">
+              <span>OAT [°C]</span>
+              <span id="val-oat" class="text-white font-bold mono">+30 °C</span>
+            </label>
+            <input type="range" id="in-oat" min="-50" max="50" step="1" value="30" oninput="calcTakeoff()" class="mt-2">
+          </div>
+          <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-2.5 flex flex-col justify-center">
+            <div class="flex justify-between text-xs">
+              <span class="text-slate-400">Pressure Alt:</span>
+              <span id="out-pa" class="font-bold text-amber-400 mono">4,007 ft</span>
             </div>
+            <div class="flex justify-between text-xs mt-1">
+              <span class="text-slate-400">ISA Dev:</span>
+              <span id="out-isadev" class="font-bold text-sky-400 mono">ISA +23 °C</span>
+            </div>
+          </div>
         </div>
-        <div class="flex items-center gap-3">
-            <span class="inline-flex items-center rounded bg-aviation-bg px-2.5 py-1 text-xs font-bold text-emerald-400 border border-aviation-border shadow-inner">FLAPS 18°</span>
+      </div>
+
+      <div class="avionics-card rounded-2xl p-4 space-y-3">
+        <h2 class="text-xs font-bold uppercase tracking-wider text-sky-400">2. Peso, Ratio V1/VR y Sistemas</h2>
+        <div>
+          <label class="text-xs text-slate-400 flex justify-between">
+            <span>Take-Off Weight (TOW) [kg]</span>
+            <span id="val-tow" class="text-white font-bold mono">6,630 kg (14,617 lb)</span>
+          </label>
+          <input type="range" id="in-tow" min="4600" max="7000" step="10" value="6630" oninput="calcTakeoff()" class="mt-2">
         </div>
-    </header>
-
-    <!-- Contenido Principal -->
-    <main class="flex-grow p-4 md:p-6 max-w-[1400px] mx-auto w-full">
-        <div class="grid grid-cols-1 xl:grid-cols-12 gap-6">
-            
-            <!-- PANEL IZQUIERDO: CONTROLES / INPUTS -->
-            <section class="xl:col-span-5 flex flex-col gap-6 overflow-y-auto pb-10">
-                
-                <!-- 1. Configuración del Avión -->
-                <div class="bg-aviation-panel p-5 rounded-2xl border border-aviation-border shadow-lg relative overflow-hidden">
-                    <div class="absolute top-0 left-0 w-1 h-full bg-aviation-accent"></div>
-                    <h2 class="text-xs font-bold text-aviation-muted uppercase tracking-wider mb-5 flex items-center gap-2">
-                        <svg class="w-4 h-4 text-aviation-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
-                        Aircraft Configuration
-                    </h2>
-                    
-                    <div class="space-y-6">
-                        <!-- Peso de Despegue -->
-                        <div>
-                            <div class="flex justify-between items-end mb-1">
-                                <label class="block text-sm font-semibold text-slate-200">Take-off Weight (TOW)</label>
-                                <div class="flex items-center gap-2">
-                                    <input type="number" id="weight-num" value="6500" min="5000" max="7000" step="10" 
-                                           class="w-24 bg-aviation-bg text-right text-lg font-mono font-bold text-white border border-aviation-border rounded-lg py-1 px-3 focus:outline-none focus:border-aviation-accent focus:ring-1 focus:ring-aviation-accent transition-all">
-                                    <span class="text-xs font-medium text-aviation-muted w-6">kg</span>
-                                </div>
-                            </div>
-                            <input type="range" id="weight-range" value="6500" min="5000" max="7000" step="10">
-                            <div class="flex justify-between text-[10px] text-aviation-muted font-mono font-medium"><span>5000</span><span>7000</span></div>
-                        </div>
-
-                        <!-- Ratio V1/VR (Manual) -->
-                        <div class="bg-aviation-bg/50 p-4 rounded-xl border border-aviation-border/50">
-                            <div class="flex justify-between items-end mb-1">
-                                <div>
-                                    <label class="block text-sm font-semibold text-slate-200 text-amber-400">V₁/Vʀ Ratio</label>
-                                    <p class="text-[10px] text-aviation-muted leading-tight mt-1">Lower values prioritize Abort (ASD),<br>but increase Take-off Distance (TOD).</p>
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    <input type="number" id="ratio-num" value="1.00" min="0.80" max="1.00" step="0.01" 
-                                           class="w-20 bg-aviation-bg text-right text-lg font-mono font-bold text-amber-400 border border-aviation-border rounded-lg py-1 px-3 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition-all">
-                                </div>
-                            </div>
-                            <input type="range" id="ratio-range" value="1.00" min="0.80" max="1.00" step="0.01" class="accent-amber-400">
-                            <div class="flex justify-between text-[10px] text-aviation-muted font-mono font-medium"><span>0.80 (Min V1)</span><span>1.00 (Balanced)</span></div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 2. Condiciones Atmosféricas -->
-                <div class="bg-aviation-panel p-5 rounded-2xl border border-aviation-border shadow-lg relative overflow-hidden">
-                    <div class="absolute top-0 left-0 w-1 h-full bg-emerald-500"></div>
-                    <div class="flex justify-between items-center mb-5">
-                        <h2 class="text-xs font-bold text-aviation-muted uppercase tracking-wider flex items-center gap-2">
-                            <svg class="w-4 h-4 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"/></svg>
-                            Atmospheric Data
-                        </h2>
-                        <div class="bg-aviation-bg px-3 py-1.5 rounded-md border border-aviation-border flex items-center gap-2 shadow-inner">
-                            <span class="text-[10px] font-bold text-aviation-muted uppercase">PA:</span>
-                            <span id="display-pa" class="font-mono text-sm text-emerald-400 font-bold">0 ft</span>
-                        </div>
-                    </div>
-                    
-                    <div class="space-y-6">
-                        <!-- QNH -->
-                        <div>
-                            <div class="flex justify-between items-end mb-1">
-                                <label class="block text-sm font-semibold text-slate-200">Altimeter (QNH)</label>
-                                <div class="flex items-center gap-2">
-                                    <input type="number" id="qnh-num" value="1013" min="950" max="1050" step="1" 
-                                           class="w-24 bg-aviation-bg text-right text-lg font-mono font-bold text-white border border-aviation-border rounded-lg py-1 px-3 focus:outline-none focus:border-emerald-500 transition-all">
-                                    <span class="text-xs font-medium text-aviation-muted w-8">hPa</span>
-                                </div>
-                            </div>
-                            <input type="range" id="qnh-range" value="1013" min="950" max="1050" step="1">
-                        </div>
-
-                        <!-- Elevación -->
-                        <div>
-                            <div class="flex justify-between items-end mb-1">
-                                <label class="block text-sm font-semibold text-slate-200">Airport Elevation</label>
-                                <div class="flex items-center gap-2">
-                                    <input type="number" id="elev-num" value="0" min="0" max="15000" step="100" 
-                                           class="w-24 bg-aviation-bg text-right text-lg font-mono font-bold text-white border border-aviation-border rounded-lg py-1 px-3 focus:outline-none focus:border-emerald-500 transition-all">
-                                    <span class="text-xs font-medium text-aviation-muted w-8">ft</span>
-                                </div>
-                            </div>
-                            <input type="range" id="elev-range" value="0" min="0" max="15000" step="100">
-                        </div>
-
-                        <!-- Temperatura -->
-                        <div>
-                            <div class="flex justify-between items-end mb-1">
-                                <label class="block text-sm font-semibold text-slate-200">Outside Air Temp (OAT)</label>
-                                <div class="flex items-center gap-2">
-                                    <input type="number" id="oat-num" value="15" min="-30" max="50" step="1" 
-                                           class="w-24 bg-aviation-bg text-right text-lg font-mono font-bold text-white border border-aviation-border rounded-lg py-1 px-3 focus:outline-none focus:border-emerald-500 transition-all">
-                                    <span class="text-xs font-medium text-aviation-muted w-8">°C</span>
-                                </div>
-                            </div>
-                            <input type="range" id="oat-range" value="15" min="-30" max="50" step="1">
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 3. Parámetros de la Pista (Runway) -->
-                <div class="bg-aviation-panel p-5 rounded-2xl border border-aviation-border shadow-lg relative overflow-hidden">
-                    <div class="absolute top-0 left-0 w-1 h-full bg-indigo-500"></div>
-                    <h2 class="text-xs font-bold text-aviation-muted uppercase tracking-wider mb-5 flex items-center gap-2">
-                        <svg class="w-4 h-4 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>
-                        Runway Details & Field Lengths
-                    </h2>
-                    
-                    <div class="space-y-6">
-                        <!-- Viento y Pendiente -->
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-xs font-semibold text-slate-300 mb-1">Wind (kts)</label>
-                                <div class="relative">
-                                    <input type="number" id="wind-num" value="0" min="-10" max="40" step="1" 
-                                           class="w-full bg-aviation-bg text-center text-lg font-mono font-bold text-white border border-aviation-border rounded-lg py-2 focus:outline-none focus:border-indigo-500 transition-all">
-                                    <div id="wind-badge" class="absolute -top-2 -right-2 text-[9px] font-bold px-1.5 py-0.5 rounded bg-slate-700 text-slate-300 border border-slate-600">CALM</div>
-                                </div>
-                                <input type="range" id="wind-range" value="0" min="-10" max="40" step="1" class="mt-3">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-semibold text-slate-300 mb-1">Slope (%)</label>
-                                <input type="number" id="slope-num" value="0" min="-5" max="5" step="0.1" 
-                                       class="w-full bg-aviation-bg text-center text-lg font-mono font-bold text-white border border-aviation-border rounded-lg py-2 focus:outline-none focus:border-indigo-500 transition-all">
-                                <input type="range" id="slope-range" value="0" min="-5" max="5" step="0.1" class="mt-3">
-                                <div id="slope-warning" class="hidden mt-2 p-2 bg-amber-900/60 border border-amber-500 rounded text-[9px] text-amber-200 leading-tight shadow-md">
-                                    <span class="font-bold text-amber-400">CAUTION:</span> AFM explicitly prohibits extrapolation of runway slope beyond ±2%. Data shown is uncertified mathematical projection.
-                                </div>
-                            </div>
-                        </div>
-
-                        <hr class="border-aviation-border">
-
-                        <!-- Distancias Declaradas -->
-                        <div class="grid grid-cols-3 gap-3">
-                            <div>
-                                <label class="block text-[10px] text-aviation-muted font-bold uppercase mb-1 text-center">TORA (m)</label>
-                                <input type="number" id="tora-num" value="1500" min="0" max="3000" step="10" 
-                                       class="w-full bg-aviation-bg text-center text-base font-mono font-bold text-slate-200 border border-aviation-border rounded-lg py-2 focus:outline-none focus:border-indigo-500 transition-all">
-                            </div>
-                            <div>
-                                <label class="block text-[10px] text-aviation-muted font-bold uppercase mb-1 text-center">TODA (m)</label>
-                                <input type="number" id="toda-num" value="1600" min="0" max="3000" step="10" 
-                                       class="w-full bg-aviation-bg text-center text-base font-mono font-bold text-slate-200 border border-aviation-border rounded-lg py-2 focus:outline-none focus:border-indigo-500 transition-all">
-                            </div>
-                            <div>
-                                <label class="block text-[10px] text-aviation-muted font-bold uppercase mb-1 text-center">ASDA (m)</label>
-                                <input type="number" id="asda-num" value="1550" min="0" max="3000" step="10" 
-                                       class="w-full bg-aviation-bg text-center text-base font-mono font-bold text-slate-200 border border-aviation-border rounded-lg py-2 focus:outline-none focus:border-indigo-500 transition-all">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- PANEL DERECHO: RESULTADOS / OUTPUTS -->
-            <section class="xl:col-span-7 flex flex-col gap-6 xl:sticky xl:top-24 xl:h-[calc(100vh-8rem)]">
-                
-                <!-- ALERTA DE SEGURIDAD (Se muestra si se excede la pista) -->
-                <div id="safety-warning" class="hidden bg-red-950/40 border border-red-500/50 rounded-xl p-4 shadow-[0_0_15px_rgba(239,68,68,0.2)] animate-pulse transition-all duration-300">
-                    <div class="flex items-start gap-4">
-                        <div class="bg-red-500/20 p-2 rounded-full">
-                            <svg class="h-8 w-8 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                            </svg>
-                        </div>
-                        <div>
-                            <h3 class="text-red-400 font-bold text-lg uppercase tracking-wider">TAKE-OFF FIELD LENGTH EXCEEDED</h3>
-                            <p class="text-red-200/80 text-sm mt-1">The calculated distances exceed the available declared runway (TORA/TODA/ASDA). <br><strong>Action:</strong> Reduce TOW, increase V1/VR ratio, or wait for better conditions.</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Tarjetas de Velocidades (V-Speeds) -->
-                <div class="bg-aviation-panel p-6 rounded-2xl border border-aviation-border shadow-xl">
-                    <h2 class="text-xs font-bold text-aviation-muted uppercase tracking-wider mb-6 flex items-center gap-2">
-                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                        Airspeeds (KIAS)
-                    </h2>
-                    
-                    <div class="grid grid-cols-3 gap-4 lg:gap-6">
-                        <!-- V1 -->
-                        <div class="bg-aviation-bg rounded-xl p-5 border border-slate-700/50 flex flex-col items-center justify-center relative overflow-hidden group shadow-inner">
-                            <div class="absolute inset-0 bg-gradient-to-b from-blue-500/10 to-transparent"></div>
-                            <span class="text-slate-400 font-bold text-sm mb-1 relative z-10">V₁ <span class="font-normal text-[10px] ml-1">(Decision)</span></span>
-                            <div class="flex items-end gap-1 relative z-10">
-                                <span id="out-v1" class="text-5xl lg:text-6xl font-mono font-extrabold text-blue-400 tracking-tighter drop-shadow-[0_2px_10px_rgba(96,165,250,0.3)]">0</span>
-                            </div>
-                        </div>
-                        <!-- VR -->
-                        <div class="bg-aviation-bg rounded-xl p-5 border border-slate-700/50 flex flex-col items-center justify-center relative overflow-hidden group shadow-inner">
-                            <div class="absolute inset-0 bg-gradient-to-b from-emerald-500/10 to-transparent"></div>
-                            <span class="text-slate-400 font-bold text-sm mb-1 relative z-10">Vʀ <span class="font-normal text-[10px] ml-1">(Rotate)</span></span>
-                            <div class="flex items-end gap-1 relative z-10">
-                                <span id="out-vr" class="text-5xl lg:text-6xl font-mono font-extrabold text-emerald-400 tracking-tighter drop-shadow-[0_2px_10px_rgba(52,211,153,0.3)]">0</span>
-                            </div>
-                        </div>
-                        <!-- V2 -->
-                        <div class="bg-aviation-bg rounded-xl p-5 border border-slate-700/50 flex flex-col items-center justify-center relative overflow-hidden group shadow-inner">
-                            <div class="absolute inset-0 bg-gradient-to-b from-white/10 to-transparent"></div>
-                            <span class="text-slate-400 font-bold text-sm mb-1 relative z-10">V₂ <span class="font-normal text-[10px] ml-1">(Safety)</span></span>
-                            <div class="flex items-end gap-1 relative z-10">
-                                <span id="out-v2" class="text-5xl lg:text-6xl font-mono font-extrabold text-white tracking-tighter drop-shadow-[0_2px_10px_rgba(255,255,255,0.3)]">0</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Gráficos de Distancias Requeridas vs Disponibles -->
-                <div class="bg-aviation-panel p-6 rounded-2xl border border-aviation-border shadow-xl flex-grow flex flex-col">
-                    <h2 class="text-xs font-bold text-aviation-muted uppercase tracking-wider mb-6 flex items-center gap-2">
-                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16"/></svg>
-                        Required Distances vs Declared (m)
-                    </h2>
-                    
-                    <div class="space-y-8 flex-grow flex flex-col justify-center">
-                        
-                        <!-- Take-Off Run (TOR) -->
-                        <div class="relative">
-                            <div class="flex justify-between items-end mb-2">
-                                <div>
-                                    <span class="block font-bold text-slate-200">Take-Off Run (TOR)</span>
-                                    <span class="text-[10px] text-aviation-muted uppercase">Limit: TORA</span>
-                                </div>
-                                <div class="text-right">
-                                    <div class="flex items-baseline justify-end gap-1">
-                                        <span id="out-tor" class="text-3xl font-mono font-bold text-white transition-colors duration-300">0</span>
-                                        <span class="text-sm text-aviation-muted font-mono">/ <span id="limit-tora">1500</span></span>
-                                    </div>
-                                </div>
-                            </div>
-                            <!-- Barra de progreso -->
-                            <div class="w-full bg-aviation-bg rounded-full h-4 border border-aviation-border overflow-hidden relative shadow-inner">
-                                <div id="bar-tor" class="h-full rounded-full transition-all duration-500 shadow-[0_0_10px_rgba(0,0,0,0.5)]" style="width: 0%; background-color: #3b82f6;"></div>
-                                <!-- Marca de límite 100% -->
-                                <div class="absolute right-0 top-0 h-full w-0.5 bg-red-500 z-10"></div>
-                            </div>
-                        </div>
-
-                        <!-- Take-Off Distance (TOD) -->
-                        <div class="relative">
-                            <div class="flex justify-between items-end mb-2">
-                                <div>
-                                    <span class="block font-bold text-slate-200">Take-Off Distance (TOD)</span>
-                                    <span class="text-[10px] text-aviation-muted uppercase">Limit: TODA</span>
-                                </div>
-                                <div class="text-right">
-                                    <div class="flex items-baseline justify-end gap-1">
-                                        <span id="out-tod" class="text-3xl font-mono font-bold text-white transition-colors duration-300">0</span>
-                                        <span class="text-sm text-aviation-muted font-mono">/ <span id="limit-toda">1600</span></span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="w-full bg-aviation-bg rounded-full h-4 border border-aviation-border overflow-hidden relative shadow-inner">
-                                <div id="bar-tod" class="h-full rounded-full transition-all duration-500 shadow-[0_0_10px_rgba(0,0,0,0.5)]" style="width: 0%; background-color: #10b981;"></div>
-                                <div class="absolute right-0 top-0 h-full w-0.5 bg-red-500 z-10"></div>
-                            </div>
-                        </div>
-
-                        <!-- Accelerate-Stop Distance (ASD) -->
-                        <div class="relative">
-                            <div class="flex justify-between items-end mb-2">
-                                <div>
-                                    <span class="block font-bold text-slate-200">Accel-Stop Distance (ASD)</span>
-                                    <span class="text-[10px] text-aviation-muted uppercase">Limit: ASDA</span>
-                                </div>
-                                <div class="text-right">
-                                    <div class="flex items-baseline justify-end gap-1">
-                                        <span id="out-asd" class="text-3xl font-mono font-bold text-white transition-colors duration-300">0</span>
-                                        <span class="text-sm text-aviation-muted font-mono">/ <span id="limit-asda">1550</span></span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="w-full bg-aviation-bg rounded-full h-4 border border-aviation-border overflow-hidden relative shadow-inner">
-                                <div id="bar-asd" class="h-full rounded-full transition-all duration-500 shadow-[0_0_10px_rgba(0,0,0,0.5)]" style="width: 0%; background-color: #f59e0b;"></div>
-                                <div class="absolute right-0 top-0 h-full w-0.5 bg-red-500 z-10"></div>
-                            </div>
-                        </div>
-
-                    </div>
-                </div>
-            </section>
+        <div class="grid grid-cols-2 gap-3 pt-1 items-center">
+          <div>
+            <label class="text-xs text-slate-400 flex justify-between">
+              <span>Ratio V1 / VR (Fig. 5-30)</span>
+              <span id="val-ratio" class="text-white font-bold mono">0.92</span>
+            </label>
+            <input type="range" id="in-ratio" min="0.80" max="1.00" step="0.01" value="0.92" oninput="calcTakeoff()" class="mt-2">
+          </div>
+          <div class="flex items-center justify-between bg-slate-900/90 border border-slate-800 rounded-xl p-2.5">
+            <div>
+              <span class="text-xs text-slate-200 block font-semibold">Separator Vane</span>
+              <span class="text-[10px] text-slate-400">ENG LH/RH</span>
+            </div>
+            <button id="btn-vane" onclick="toggleVane()" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-800 text-slate-400 border border-slate-700">
+              OFF
+            </button>
+          </div>
         </div>
-    </main>
+      </div>
 
-    <!-- Lógica JavaScript (Cálculos de Performance L-410 NG) -->
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            
-            // Array de todos los controles numéricos y sus respectivos sliders
-            const controls = ['weight', 'qnh', 'elev', 'oat', 'wind', 'slope', 'ratio'];
-            const fieldLimits = ['tora', 'toda', 'asda'];
-            
-            // Sincronizar inputs Numéricos <-> Sliders
-            controls.forEach(id => {
-                const num = document.getElementById(`${id}-num`);
-                const range = document.getElementById(`${id}-range`);
-                
-                num.addEventListener('input', (e) => {
-                    range.value = e.target.value;
-                    calculatePerformance();
-                });
-                range.addEventListener('input', (e) => {
-                    num.value = e.target.value;
-                    calculatePerformance();
-                });
-            });
+      <div class="avionics-card rounded-2xl p-4 space-y-3">
+        <h2 class="text-xs font-bold uppercase tracking-wider text-sky-400">3. Pista Declarada, Superficie y Viento</h2>
+        <div class="grid grid-cols-3 gap-2">
+          <div>
+            <label class="text-[11px] text-slate-400 block">TORA [m]</label>
+            <input type="number" id="in-tora" value="900" step="10" oninput="calcTakeoff()" class="w-full mt-1 bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-sm font-bold text-white mono">
+          </div>
+          <div>
+            <label class="text-[11px] text-slate-400 block">TODA [m]</label>
+            <input type="number" id="in-toda" value="900" step="10" oninput="calcTakeoff()" class="w-full mt-1 bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-sm font-bold text-white mono">
+          </div>
+          <div>
+            <label class="text-[11px] text-slate-400 block">ASDA [m]</label>
+            <input type="number" id="in-asda" value="900" step="10" oninput="calcTakeoff()" class="w-full mt-1 bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-sm font-bold text-white mono">
+          </div>
+        </div>
 
-            // Escuchar cambios en las distancias declaradas
-            fieldLimits.forEach(id => {
-                document.getElementById(`${id}-num`).addEventListener('input', calculatePerformance);
-            });
+        <div>
+          <label class="text-[11px] text-slate-400 block mb-1">Superficie de Pista (Tab. 5/II &amp; Tab. 5/III)</label>
+          <select id="in-surface" onchange="calcTakeoff()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-2 text-xs font-medium text-white">
+            <option value="0" selected>Paved Runway — Hard &amp; Dry (Coef: 1.00 / 1.00)</option>
+            <option value="1">Paved — Friction coef. 0.50 to 0.45 (TO: 1.00 | ASD: 1.06)</option>
+            <option value="2">Paved — Friction coef. 0.45 to 0.40 (TO: 1.00 | ASD: 1.12)</option>
+            <option value="3">Paved — Friction coef. 0.40 to 0.35 (TO: 1.00 | ASD: 1.19)</option>
+            <option value="4">Paved — Friction coef. 0.35 to 0.30 (TO: 1.00 | ASD: 1.26)</option>
+            <option value="5">Paved — Friction coef. 0.30 to 0.25 (TO: 1.00 | ASD: 1.34)</option>
+            <option value="6">Paved — Friction coef. 0.25 to 0.20 (TO: 1.00 | ASD: 1.43)</option>
+            <option value="7">Paved — Slush / Wet Snow &le; 12 mm (TO: 1.21 | ASD: 1.30)</option>
+            <option value="8">Paved — Standing Water &le; 10 mm (TO: 1.21 | ASD: 1.30)</option>
+            <option value="9">Paved/Unpaved — Dry Snow &le; 50 mm (TO: 1.17 | ASD: 1.20)</option>
+            <option value="10">Unpaved — Compacted Snow 8–10 kg/cm² (TO: 1.25 | ASD: 1.30)</option>
+            <option value="11">Unpaved — Soft Sandy 10–15 kg/cm² (TO: 1.05 | ASD: 1.05)</option>
+            <option value="12">Unpaved — Strength 6–8 kg/cm² (TO: 1.55 | ASD: 1.35)</option>
+            <option value="13">Unpaved — Muddy 8–10 kg/cm² (TO: 1.47 | ASD: 1.03)</option>
+          </select>
+        </div>
 
-            // Formateador visual para etiqueta de viento (HEAD / TAIL)
-            function updateWindLabel(wind) {
-                const badge = document.getElementById('wind-badge');
-                if (wind < 0) {
-                    badge.textContent = `${Math.abs(wind)} TAIL`;
-                    badge.className = "absolute -top-2 -right-2 text-[9px] font-bold px-1.5 py-0.5 rounded bg-red-900/80 text-red-300 border border-red-700";
-                } else if (wind > 0) {
-                    badge.textContent = `${wind} HEAD`;
-                    badge.className = "absolute -top-2 -right-2 text-[9px] font-bold px-1.5 py-0.5 rounded bg-emerald-900/80 text-emerald-300 border border-emerald-700";
-                } else {
-                    badge.textContent = "CALM";
-                    badge.className = "absolute -top-2 -right-2 text-[9px] font-bold px-1.5 py-0.5 rounded bg-slate-700 text-slate-300 border border-slate-600";
-                }
-            }
+        <div class="bg-slate-900/70 border border-slate-800 rounded-xl p-2.5 space-y-2">
+          <div class="flex justify-between items-center">
+            <span class="text-[11px] font-semibold text-sky-400">Viento (Fig. 5-8)</span>
+            <button id="btn-windmode" onclick="toggleWindMode()" class="text-[10px] px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">
+              Modo: METAR (Dir/Vel)
+            </button>
+          </div>
+          <div id="wind-metar-box" class="grid grid-cols-3 gap-2">
+            <div>
+              <label class="text-[10px] text-slate-400 block">RWY HDG [°]</label>
+              <input type="number" id="in-rwy-hdg" value="200" min="1" max="360" oninput="calcTakeoff()" class="w-full mt-0.5 bg-slate-950 border border-slate-700 rounded px-2 py-1 text-xs font-bold text-white mono">
+            </div>
+            <div>
+              <label class="text-[10px] text-slate-400 block">Wind Dir [°]</label>
+              <input type="number" id="in-wind-dir" value="200" min="1" max="360" oninput="calcTakeoff()" class="w-full mt-0.5 bg-slate-950 border border-slate-700 rounded px-2 py-1 text-xs font-bold text-white mono">
+            </div>
+            <div>
+              <label class="text-[10px] text-slate-400 block">Wind Spd [kt]</label>
+              <input type="number" id="in-wind-spd" value="0" min="0" max="65" oninput="calcTakeoff()" class="w-full mt-0.5 bg-slate-950 border border-slate-700 rounded px-2 py-1 text-xs font-bold text-white mono">
+            </div>
+          </div>
+          <div id="wind-axial-box" class="hidden">
+            <label class="text-xs text-slate-400 flex justify-between">
+              <span>Componente Axial Directa [kt]</span>
+              <span id="val-wind-direct" class="text-white font-bold mono">0 kt</span>
+            </label>
+            <input type="range" id="in-wind-direct" min="-10" max="40" step="1" value="0" oninput="calcTakeoff()" class="mt-1">
+          </div>
+          <div class="flex justify-between text-[11px] pt-1 border-t border-slate-800/80">
+            <span class="text-slate-400">Axial: <strong id="out-wind-head" class="text-emerald-400 mono">+0.0 kt HW</strong></span>
+            <span class="text-slate-400">Crosswind: <strong id="out-wind-cross" class="text-sky-400 mono">0.0 kt</strong></span>
+          </div>
+        </div>
 
-            // Aplicar colores y alertas a las barras de progreso
-            function applyWarningStatus(value, limit, outElement, barElement, defaultHexColor) {
-                // Actualizar texto
-                outElement.textContent = Math.round(value);
-                
-                // Calcular porcentaje visual (máx 100% para no desbordar div)
-                let pct = Math.min((value / limit) * 100, 100);
-                barElement.style.width = `${pct}%`;
-                
-                // Lógica de alerta
-                if (value > limit) {
-                    // Texto en rojo
-                    outElement.classList.replace('text-white', 'text-red-500');
-                    // Barra en rojo puro
-                    barElement.style.backgroundColor = '#ef4444'; 
-                    return true; // Retorna true indicando que hay una violación de límite
-                } else {
-                    // Restaurar texto blanco
-                    outElement.classList.replace('text-red-500', 'text-white');
-                    // Restaurar color original de la barra
-                    barElement.style.backgroundColor = defaultHexColor; 
-                    return false;
-                }
-            }
+        <div>
+          <label class="text-xs text-slate-400 flex justify-between">
+            <span>Pendiente de Pista (Slope) [%]</span>
+            <span id="val-slope" class="text-white font-bold mono">-2.8 %</span>
+          </label>
+          <input type="range" id="in-slope" min="-5.0" max="5.0" step="0.1" value="-2.8" oninput="calcTakeoff()" class="mt-1.5">
+        </div>
+      </div>
+    </section>
 
-            // --- MOTOR DE CÁLCULO PRINCIPAL ---
-            function calculatePerformance() {
-                // 1. Obtener valores de la UI
-                const weight = parseFloat(document.getElementById('weight-num').value) || 6500;
-                const qnh = parseFloat(document.getElementById('qnh-num').value) || 1013;
-                const elev = parseFloat(document.getElementById('elev-num').value) || 0;
-                const oat = parseFloat(document.getElementById('oat-num').value) || 15;
-                const wind = parseFloat(document.getElementById('wind-num').value) || 0;
-                const slope = parseFloat(document.getElementById('slope-num').value) || 0;
-                const ratio = parseFloat(document.getElementById('ratio-num').value) || 1.00;
+    <section class="lg:col-span-6 space-y-3">
+      <div id="to-alerts" class="space-y-2"></div>
 
-                const tora = parseFloat(document.getElementById('tora-num').value) || 1500;
-                const toda = parseFloat(document.getElementById('toda-num').value) || 1600;
-                const asda = parseFloat(document.getElementById('asda-num').value) || 1550;
+      <div class="avionics-card rounded-2xl p-4">
+        <div class="flex justify-between items-center mb-3">
+          <h2 class="text-xs font-bold uppercase tracking-wider text-sky-400">Velocidades de Despegue (Fig. 5-29 &amp; 5-30)</h2>
+          <span class="text-[11px] text-slate-400">Flaps 18°</span>
+        </div>
+        <div class="grid grid-cols-3 gap-3 text-center">
+          <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-3">
+            <div class="text-xs text-slate-400 font-semibold">V1</div>
+            <div id="out-v1" class="text-3xl font-extrabold text-emerald-400 mono mt-1">--</div>
+            <div class="text-[10px] text-slate-500">KIAS</div>
+          </div>
+          <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-3">
+            <div class="text-xs text-slate-400 font-semibold">VR</div>
+            <div id="out-vr" class="text-3xl font-extrabold text-sky-400 mono mt-1">--</div>
+            <div class="text-[10px] text-slate-500">KIAS</div>
+          </div>
+          <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-3">
+            <div class="text-xs text-slate-400 font-semibold">V2</div>
+            <div id="out-v2" class="text-3xl font-extrabold text-amber-400 mono mt-1">--</div>
+            <div class="text-[10px] text-slate-500">KIAS</div>
+          </div>
+        </div>
+      </div>
 
-                updateWindLabel(wind);
-                
-                // Mostrar alerta de extrapolación si la pendiente excede +/- 2%
-                const slopeWarning = document.getElementById('slope-warning');
-                if (slope < -2.0 || slope > 2.0) {
-                    slopeWarning.classList.remove('hidden');
-                } else {
-                    slopeWarning.classList.add('hidden');
-                }
-                
-                // Actualizar etiquetas de límites
-                document.getElementById('limit-tora').textContent = tora;
-                document.getElementById('limit-toda').textContent = toda;
-                document.getElementById('limit-asda').textContent = asda;
+      <div class="avionics-card rounded-2xl p-4 space-y-2.5">
+        <div class="flex justify-between items-center">
+          <h2 class="text-xs font-bold uppercase tracking-wider text-sky-400">Distancias OEI (Fig. 5-13 a 5-27)</h2>
+          <span id="out-surf-badge" class="text-[10px] px-2 py-0.5 rounded bg-slate-800 text-slate-300 mono">Coef: 1.00 / 1.00</span>
+        </div>
+        <div id="card-tor" class="bg-slate-900/90 border border-slate-800 rounded-xl p-3">
+          <div class="flex justify-between items-baseline">
+            <div>
+              <span class="text-sm font-bold text-white">TOR (Take-Off Run)</span>
+              <span class="text-[11px] text-slate-400 block">Fig. 5-13 / 5-14 / 5-15..17</span>
+            </div>
+            <div class="text-right">
+              <span id="out-tor" class="text-xl font-extrabold text-emerald-400 mono">-- m</span>
+              <span id="out-tora-lim" class="text-[11px] text-slate-400 block mono">TORA Cor: -- m</span>
+            </div>
+          </div>
+        </div>
+        <div id="card-tod" class="bg-slate-900/90 border border-slate-800 rounded-xl p-3">
+          <div class="flex justify-between items-baseline">
+            <div>
+              <span class="text-sm font-bold text-white">TOD (Take-Off Distance)</span>
+              <span class="text-[11px] text-slate-400 block">Fig. 5-18 / 5-19 / 5-20..22</span>
+            </div>
+            <div class="text-right">
+              <span id="out-tod" class="text-xl font-extrabold text-emerald-400 mono">-- m</span>
+              <span id="out-toda-lim" class="text-[11px] text-slate-400 block mono">TODA Cor: -- m</span>
+            </div>
+          </div>
+        </div>
+        <div id="card-asd" class="bg-slate-900/90 border border-slate-800 rounded-xl p-3">
+          <div class="flex justify-between items-baseline">
+            <div>
+              <span class="text-sm font-bold text-white">ASD (Accelerate-Stop)</span>
+              <span class="text-[11px] text-slate-400 block">Fig. 5-23 / 5-24 / 5-25..27</span>
+            </div>
+            <div class="text-right">
+              <span id="out-asd" class="text-xl font-extrabold text-emerald-400 mono">-- m</span>
+              <span id="out-asda-lim" class="text-[11px] text-slate-400 block mono">ASDA Cor: -- m</span>
+            </div>
+          </div>
+        </div>
+      </div>
 
-                // 2. Altitud de Presión (PA)
-                let pa = elev + (1013.25 - qnh) * 27.3;
-                pa = Math.round(pa);
-                document.getElementById('display-pa').textContent = `${pa} ft`;
+      <div class="avionics-card rounded-2xl p-4 space-y-2.5">
+        <div class="flex justify-between items-center">
+          <h2 class="text-xs font-bold uppercase tracking-wider text-sky-400">2 Motores Operativos &times; 1.15 (Fig. 5-31 a 5-34)</h2>
+          <span class="text-[10px] text-slate-400 mono">pp. 5-43..5-46</span>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div id="card-aeo-tor" class="bg-slate-900/90 border border-slate-800 rounded-xl p-3">
+            <div class="text-[11px] text-slate-400">TOR &times; 1.15 vs TORA</div>
+            <div id="out-aeo-tor" class="text-lg font-bold text-emerald-400 mono mt-0.5">-- m</div>
+            <div id="out-aeo-tora-lim" class="text-[10px] text-slate-400 mono">TORA Cor: -- m</div>
+          </div>
+          <div id="card-aeo-tod" class="bg-slate-900/90 border border-slate-800 rounded-xl p-3">
+            <div class="text-[11px] text-slate-400">TOD &times; 1.15 vs TODA</div>
+            <div id="out-aeo-tod" class="text-lg font-bold text-emerald-400 mono mt-0.5">-- m</div>
+            <div id="out-aeo-toda-lim" class="text-[10px] text-slate-400 mono">TODA Cor: -- m</div>
+          </div>
+        </div>
+      </div>
 
-                // 3. Velocidades V (Speeds)
-                // Fórmula del manual provista: Base + max(0, corrección por peso arriba de 6200kg)
-                let vr = 80 + Math.max(0, (weight - 6200) * (5 / 800));
-                let v2 = 85 + Math.max(0, (weight - 6200) * (5 / 800));
-                // V1 es simplemente VR multiplicada por el Ratio elegido
-                let v1 = vr * ratio;
+      <div class="avionics-card rounded-2xl p-4">
+        <div class="flex justify-between items-center mb-2">
+          <h2 class="text-xs font-bold uppercase tracking-wider text-sky-400">Límites WAT de Ascenso OEI</h2>
+          <span class="text-[11px] text-slate-400">Fig. 5-11 &amp; Fig. 5-12</span>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div id="card-wat2" class="bg-slate-900/90 border border-slate-800 rounded-xl p-3">
+            <div class="text-xs text-slate-400">2nd Segment (Flaps 18°)</div>
+            <div id="out-wat2" class="text-xl font-bold text-white mono mt-0.5">-- kg</div>
+          </div>
+          <div id="card-watfto" class="bg-slate-900/90 border border-slate-800 rounded-xl p-3">
+            <div class="text-xs text-slate-400">Final Segment (Flaps 0°)</div>
+            <div id="out-watfto" class="text-xl font-bold text-white mono mt-0.5">-- kg</div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
 
-                // 4. Cálculo Base de Distancias (Simulación de Matrices)
-                // Usamos un modelo polinomial de aproximación para las curvas base TOD
-                let baseTod = 600 + ((weight - 5000) * 0.15) + (pa * 0.03);
-                
-                // Penalización por alta temperatura (ISA > 15)
-                if (oat > 15) {
-                    baseTod += (oat - 15) * 5;
-                }
+  <!-- ==================== 2. MÓDULO CRUISE (FIG. 5-10) ==================== -->
+  <main id="view-cruise" class="max-w-7xl mx-auto hidden grid-cols-1 lg:grid-cols-12 gap-4">
+    <section class="lg:col-span-6 space-y-3">
+      <div class="avionics-card rounded-2xl p-4 space-y-4">
+        <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+          <h2 class="text-xs font-bold uppercase tracking-wider text-sky-400">Parámetros de Crucero (Fig. 5-10)</h2>
+          <span class="text-[11px] text-slate-400 mono">p. 5-12</span>
+        </div>
 
-                // Corrección por Viento (Headwind acorta distancia, Tailwind alarga más drásticamente)
-                let windCorr = wind > 0 ? (wind * -10) : (wind * -30);
-                
-                // Corrección por Pendiente (Slope)
-                let slopeCorr = slope * 50;
+        <div class="grid grid-cols-2 gap-2 bg-slate-900/80 border border-slate-800 rounded-xl p-3 text-xs">
+          <div class="flex justify-between"><span class="text-slate-400">Engines:</span><span class="font-bold text-slate-200">Cruise Rating</span></div>
+          <div class="flex justify-between"><span class="text-slate-400">Propellers:</span><span class="font-bold text-sky-400 mono">1,700 RPM</span></div>
+          <div class="flex justify-between"><span class="text-slate-400">Heating:</span><span class="font-bold text-slate-200">OFF</span></div>
+          <div class="flex justify-between"><span class="text-slate-400">Airframe De-ice:</span><span class="font-bold text-slate-200">OFF</span></div>
+        </div>
 
-                // Distancia Base Unificada (TOD teórico con V1/VR = 1.00)
-                let baseDist = Math.max(400, baseTod + windCorr + slopeCorr);
+        <div>
+          <label class="text-xs text-slate-400 flex justify-between">
+            <span>Pressure Altitude [ft / m]</span>
+            <span id="val-crz-pa" class="text-white font-bold mono">10,000 ft (3,050 m)</span>
+          </label>
+          <input type="range" id="in-crz-pa" min="0" max="20000" step="500" value="10000" oninput="calcCruise()" class="mt-2">
+        </div>
 
-                // 5. Aplicar el efecto del Ratio V1/VR (Trade-off Abort vs Continue)
-                // Si Ratio = 1.0 -> Multiplicador = 1.0
-                // Si Ratio < 1.0 -> ASD disminuye (frenas antes), pero TOD y TOR aumentan (aceleras más en OEI).
-                
-                // Impacto en ASD (Aceleración Parada): Un ratio de 0.8 reduce la ASD a un 80% aprox.
-                let asdMultiplier = ratio; 
-                
-                // Impacto en TOD (Distancia Despegue continuado): 
-                // Un ratio de 0.8 significa perder motor antes, por lo que aumenta mucho la distancia.
-                let todMultiplier = 1 + ((1 - ratio) * 1.5); 
-                
-                // Impacto en TOR (Carrera Despegue): Sigue la tendencia de TOD.
-                let torMultiplier = 1 + ((1 - ratio) * 1.2);
+        <div>
+          <label class="text-xs text-slate-400 flex justify-between">
+            <span>Outside Air Temperature (OAT) [°C]</span>
+            <span id="val-crz-oat" class="text-white font-bold mono">-5 °C</span>
+          </label>
+          <input type="range" id="in-crz-oat" min="-50" max="50" step="1" value="-5" oninput="calcCruise()" class="mt-2">
+        </div>
 
-                // Distancias Finales
-                let todCalc = baseDist * todMultiplier;
-                let torCalc = (baseDist * 0.85) * torMultiplier; // TOR base suele ser ~85% del TOD
-                let asdCalc = (baseDist * 1.20) * asdMultiplier; // ASD base suele ser ~120% del TOD
+        <div>
+          <label class="text-xs text-slate-400 flex justify-between">
+            <span>Indicated Airspeed (KIAS) [kt]</span>
+            <span id="val-crz-kias" class="text-white font-bold mono">160 KIAS</span>
+          </label>
+          <input type="range" id="in-crz-kias" min="100" max="180" step="1" value="160" oninput="calcCruise()" class="mt-2">
+        </div>
+      </div>
+    </section>
 
-                // 6. Actualizar Interfaz (UI)
-                document.getElementById('out-v1').textContent = Math.round(v1);
-                document.getElementById('out-vr').textContent = Math.round(vr);
-                document.getElementById('out-v2').textContent = Math.round(v2);
+    <section class="lg:col-span-6 space-y-3">
+      <div id="crz-alerts" class="space-y-2"></div>
 
-                const outTor = document.getElementById('out-tor');
-                const outTod = document.getElementById('out-tod');
-                const outAsd = document.getElementById('out-asd');
-                
-                const barTor = document.getElementById('bar-tor');
-                const barTod = document.getElementById('bar-tod');
-                const barAsd = document.getElementById('bar-asd');
+      <div class="avionics-card rounded-2xl p-5 flex flex-col justify-between">
+        <div class="flex justify-between items-center">
+          <span class="text-xs font-bold uppercase tracking-wider text-sky-400">Torque Setting for Cruise Rating</span>
+          <span id="out-crz-isadev" class="text-xs font-bold px-2.5 py-1 rounded bg-slate-800 text-sky-300 mono">ISA +0 °C</span>
+        </div>
 
-                // Aplicar datos y chequear violaciones
-                let warnTor = applyWarningStatus(torCalc, tora, outTor, barTor, '#3b82f6'); // Tailwind blue-500
-                let warnTod = applyWarningStatus(todCalc, toda, outTod, barTod, '#10b981'); // Tailwind emerald-500
-                let warnAsd = applyWarningStatus(asdCalc, asda, outAsd, barAsd, '#f59e0b'); // Tailwind amber-500
+        <div class="my-6 text-center bg-slate-900/90 border border-slate-800 rounded-2xl p-6">
+          <div class="text-xs uppercase tracking-widest text-slate-400">Target Engine Torque</div>
+          <div id="out-crz-torque" class="text-6xl font-black text-emerald-400 mono mt-2">85.4 %</div>
+          <div id="out-crz-status" class="text-xs text-slate-400 mt-2">Dentro de envolvente continua de crucero</div>
+        </div>
 
-                // 7. Mostrar Banner Global de Advertencia
-                const warningBanner = document.getElementById('safety-warning');
-                if (warnTor || warnTod || warnAsd) {
-                    warningBanner.classList.remove('hidden');
-                } else {
-                    warningBanner.classList.add('hidden');
-                }
-            }
+        <div class="grid grid-cols-3 gap-2 text-center">
+          <div class="bg-slate-900/70 border border-slate-800 rounded-xl p-2.5">
+            <div class="text-[11px] text-slate-400">Torque Ref (146 kt)</div>
+            <div id="out-crz-ref" class="text-base font-bold text-slate-200 mono mt-0.5">84.1 %</div>
+          </div>
+          <div class="bg-slate-900/70 border border-slate-800 rounded-xl p-2.5">
+            <div class="text-[11px] text-slate-400">Corr. Velocidad</div>
+            <div id="out-crz-kiascorr" class="text-base font-bold text-sky-400 mono mt-0.5">+1.3 %</div>
+          </div>
+          <div class="bg-slate-900/70 border border-slate-800 rounded-xl p-2.5">
+            <div class="text-[11px] text-slate-400">TAS Estimada</div>
+            <div id="out-crz-tas" class="text-base font-bold text-amber-400 mono mt-0.5">186 KTAS</div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
 
-            // Ejecutar cálculo al iniciar la página
-            calculatePerformance();
-        });
-    </script>
+  <!-- ==================== 3. MÓDULO LANDING (FIG. 5-88 & 5-89) ==================== -->
+  <main id="view-landing" class="max-w-7xl mx-auto hidden grid-cols-1 lg:grid-cols-12 gap-4">
+    <section class="lg:col-span-6 space-y-3">
+      <div class="avionics-card rounded-2xl p-4 space-y-3">
+        <div class="flex justify-between items-center">
+          <h2 class="text-xs font-bold uppercase tracking-wider text-sky-400">1. Aeródromo de Aterrizaje y Atmósfera</h2>
+          <div class="flex bg-slate-900 p-0.5 rounded-lg border border-slate-700 text-[11px]">
+            <button id="btn-ldg-dest" onclick="setLdgFactor(1.67)" class="px-2.5 py-1 rounded-md font-bold bg-sky-600 text-white">Destino (1.67)</button>
+            <button id="btn-ldg-alt" onclick="setLdgFactor(1.43)" class="px-2.5 py-1 rounded-md font-bold text-slate-400">Alterno (1.43)</button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="text-xs text-slate-400 flex justify-between">
+              <span>Elevación [ft]</span>
+              <span id="val-ldg-elev" class="text-white font-bold mono">2,000 ft</span>
+            </label>
+            <input type="range" id="in-ldg-elev" min="0" max="13120" step="50" value="2000" oninput="calcLanding()" class="mt-2">
+          </div>
+          <div>
+            <label class="text-xs text-slate-400 flex justify-between">
+              <span>QNH [hPa]</span>
+              <span id="val-ldg-qnh" class="text-white font-bold mono">1013 hPa</span>
+            </label>
+            <input type="range" id="in-ldg-qnh" min="950" max="1050" step="1" value="1013" oninput="calcLanding()" class="mt-2">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3 pt-1">
+          <div>
+            <label class="text-xs text-slate-400 flex justify-between">
+              <span>OAT [°C]</span>
+              <span id="val-ldg-oat" class="text-white font-bold mono">+20 °C</span>
+            </label>
+            <input type="range" id="in-ldg-oat" min="-50" max="50" step="1" value="20" oninput="calcLanding()" class="mt-2">
+          </div>
+          <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-2.5 flex flex-col justify-center">
+            <div class="flex justify-between text-xs">
+              <span class="text-slate-400">Pressure Alt:</span>
+              <span id="out-ldg-pa" class="font-bold text-amber-400 mono">2,007 ft</span>
+            </div>
+            <div class="flex justify-between text-xs mt-1">
+              <span class="text-slate-400">ISA Dev:</span>
+              <span id="out-ldg-isadev" class="font-bold text-sky-400 mono">ISA +9 °C</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="avionics-card rounded-2xl p-4 space-y-3">
+        <h2 class="text-xs font-bold uppercase tracking-wider text-sky-400">2. Peso de Aterrizaje (LDW) y Engelamiento</h2>
+        <div>
+          <label class="text-xs text-slate-400 flex justify-between">
+            <span>Landing Weight (LDW) [kg] (Fig. 5-89)</span>
+            <span id="val-ldw" class="text-white font-bold mono">6,200 kg (13,669 lb)</span>
+          </label>
+          <input type="range" id="in-ldw" min="4800" max="6800" step="10" value="6200" oninput="calcLanding()" class="mt-2">
+        </div>
+
+        <div class="flex items-center justify-between bg-slate-900/90 border border-slate-800 rounded-xl p-2.5">
+          <div>
+            <span class="text-xs text-slate-200 block font-semibold">Icing Conditions (p. 5-126 CAUTION)</span>
+            <span class="text-[10px] text-slate-400">Incrementa distancia de aterrizaje en +35%</span>
+          </div>
+          <button id="btn-icing" onclick="toggleIcing()" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-800 text-slate-400 border border-slate-700">
+            OFF
+          </button>
+        </div>
+      </div>
+
+      <div class="avionics-card rounded-2xl p-4 space-y-3">
+        <h2 class="text-xs font-bold uppercase tracking-wider text-sky-400">3. Pista Disponible (LDA), Superficie y Viento</h2>
+        <div class="grid grid-cols-3 gap-2 items-end">
+          <div>
+            <label class="text-[11px] text-slate-400 block">LDA Declarada [m]</label>
+            <input type="number" id="in-lda" value="900" step="10" oninput="calcLanding()" class="w-full mt-1 bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-sm font-bold text-white mono">
+          </div>
+          <div class="col-span-2">
+            <label class="text-[11px] text-slate-400 block">Condición de Superficie (p. 5-126/127 &amp; Tab. 5/IV)</label>
+            <select id="in-ldg-surface" onchange="calcLanding()" class="w-full mt-1 bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-2 text-xs font-medium text-white">
+              <option value="1.00" selected>Hard Dry Runway / Friction &gt; 0.45 (Coef: 1.00)</option>
+              <option value="1.15">Wet Runway — Pista Mojada (Factor p. 5-126: 1.15)</option>
+              <option value="1.01">Paved — Friction coef. 0.40 to 0.45 (Tab. 5/IV: 1.01)</option>
+              <option value="1.03">Paved — Friction coef. 0.35 to 0.40 (Tab. 5/IV: 1.03)</option>
+              <option value="1.05">Paved — Friction coef. 0.30 to 0.35 (Tab. 5/IV: 1.05)</option>
+              <option value="1.07">Paved — Friction coef. 0.25 to 0.30 (Tab. 5/IV: 1.07)</option>
+              <option value="1.10">Paved — Friction coef. 0.20 to 0.25 (Tab. 5/IV: 1.10)</option>
+              <option value="1.05">Paved — Slush / Wet Snow &le; 12 mm (Tab. 5/IV: 1.05)</option>
+              <option value="1.07">Unpaved — Strength 85.4 psi / 6 kg/cm² (Tab. 5/IV: 1.07)</option>
+              <option value="1.12">Unpaved — Soft Sandy Runway (Tab. 5/IV: 1.12)</option>
+              <option value="1.60">Very Low Friction — ICE / Hielo (Factor p. 5-127: 1.60)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3 pt-1">
+          <div>
+            <label class="text-xs text-slate-400 flex justify-between">
+              <span>Viento Axial [kt]</span>
+              <span id="val-ldg-wind" class="text-white font-bold mono">0 kt</span>
+            </label>
+            <input type="range" id="in-ldg-wind" min="-10" max="40" step="1" value="0" oninput="calcLanding()" class="mt-2">
+          </div>
+          <div>
+            <label class="text-xs text-slate-400 flex justify-between">
+              <span>Pendiente [%]</span>
+              <span id="val-ldg-slope" class="text-white font-bold mono">0.0 %</span>
+            </label>
+            <input type="range" id="in-ldg-slope" min="-5.0" max="5.0" step="0.1" value="0.0" oninput="calcLanding()" class="mt-2">
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="lg:col-span-6 space-y-3">
+      <div id="ldg-alerts" class="space-y-2"></div>
+
+      <div class="avionics-card rounded-2xl p-5">
+        <div class="flex justify-between items-center">
+          <span class="text-xs font-bold uppercase tracking-wider text-sky-400">Landing Distance Required (Flaps 42°)</span>
+          <span id="out-ldg-badge" class="text-xs font-bold px-2.5 py-1 rounded bg-sky-500/20 text-sky-300 mono">Factor: 1.67 (Destino)</span>
+        </div>
+
+        <div id="card-ldr" class="my-4 text-center bg-slate-900/90 border border-slate-800 rounded-2xl p-6">
+          <div class="text-xs uppercase tracking-widest text-slate-400">Distancia de Aterrizaje Requerida (LDR)</div>
+          <div id="out-ldr" class="text-5xl font-black text-emerald-400 mono mt-2">-- m</div>
+          <div id="out-lda-comp" class="text-sm font-semibold text-slate-300 mono mt-2">LDA Disponible: -- m</div>
+        </div>
+
+        <div class="grid grid-cols-3 gap-2 text-center">
+          <div class="bg-slate-900/70 border border-slate-800 rounded-xl p-2.5">
+            <div class="text-[11px] text-slate-400">Base Fig. 5-88</div>
+            <div id="out-ldg-base" class="text-base font-bold text-slate-200 mono mt-0.5">-- m</div>
+          </div>
+          <div class="bg-slate-900/70 border border-slate-800 rounded-xl p-2.5">
+            <div class="text-[11px] text-slate-400">Corr. Fig. 5-89</div>
+            <div id="out-ldg-corr" class="text-base font-bold text-sky-400 mono mt-0.5">-- m</div>
+          </div>
+          <div class="bg-slate-900/70 border border-slate-800 rounded-xl p-2.5">
+            <div class="text-[11px] text-slate-400">Actual (Sin Factor)</div>
+            <div id="out-ldg-actual" class="text-base font-bold text-amber-400 mono mt-0.5">-- m</div>
+          </div>
+        </div>
+
+        <p class="text-[11px] text-slate-500 mt-4 leading-relaxed">
+          <strong class="text-slate-400">Condiciones Asociadas AFM (p. 5-127):</strong> Flaps 42°, tren abajo, gradiente de descenso 5% hasta 50 ft, potencia en IDLE bajo 50 ft, frenos de rueda + spoilers (sin reversa). Actual = 60% de LDR en destino (1.67) o 70% en alterno (1.43).
+        </p>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    let vaneOn = false;
+    let windMetarMode = true;
+    let ldgFactor = 1.67;
+    let icingOn = false;
+
+    const surfaceCoeffsTO = [
+      { to: 1.00, asd: 1.00 },
+      { to: 1.00, asd: 1.06 },
+      { to: 1.00, asd: 1.12 },
+      { to: 1.00, asd: 1.19 },
+      { to: 1.00, asd: 1.26 },
+      { to: 1.00, asd: 1.34 },
+      { to: 1.00, asd: 1.43 },
+      { to: 1.21, asd: 1.30 },
+      { to: 1.21, asd: 1.30 },
+      { to: 1.17, asd: 1.20 },
+      { to: 1.25, asd: 1.30 },
+      { to: 1.05, asd: 1.05 },
+      { to: 1.55, asd: 1.35 },
+      { to: 1.47, asd: 1.03 }
+    ];
+
+    function switchTab(tab) {
+      const views = ['takeoff', 'cruise', 'landing'];
+      views.forEach(v => {
+        const el = document.getElementById('view-' + v);
+        const btn = document.getElementById('tab-' + v);
+        if (v === tab) {
+          el.classList.remove('hidden');
+          el.classList.add('grid');
+          btn.className = "px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition bg-sky-600 text-white shadow whitespace-nowrap";
+        } else {
+          el.classList.add('hidden');
+          el.classList.remove('grid');
+          btn.className = "px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition text-slate-400 hover:text-white whitespace-nowrap";
+        }
+      });
+    }
+
+    function toggleVane() {
+      vaneOn = !vaneOn;
+      const btn = document.getElementById('btn-vane');
+      btn.textContent = vaneOn ? "ON (-2.5% / -3%)" : "OFF";
+      btn.className = vaneOn
+        ? "px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-500/20 text-amber-400 border border-amber-500/40"
+        : "px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-800 text-slate-400 border border-slate-700";
+      calcTakeoff();
+    }
+
+    function toggleWindMode() {
+      windMetarMode = !windMetarMode;
+      document.getElementById('btn-windmode').textContent = windMetarMode ? "Modo: METAR (Dir/Vel)" : "Modo: Axial Directo";
+      document.getElementById('wind-metar-box').classList.toggle('hidden', !windMetarMode);
+      document.getElementById('wind-axial-box').classList.toggle('hidden', windMetarMode);
+      calcTakeoff();
+    }
+
+    function setLdgFactor(f) {
+      ldgFactor = f;
+      const bDest = document.getElementById('btn-ldg-dest');
+      const bAlt = document.getElementById('btn-ldg-alt');
+      if (f === 1.67) {
+        bDest.className = "px-2.5 py-1 rounded-md font-bold bg-sky-600 text-white";
+        bAlt.className = "px-2.5 py-1 rounded-md font-bold text-slate-400";
+      } else {
+        bAlt.className = "px-2.5 py-1 rounded-md font-bold bg-sky-600 text-white";
+        bDest.className = "px-2.5 py-1 rounded-md font-bold text-slate-400";
+      }
+      calcLanding();
+    }
+
+    function toggleIcing() {
+      icingOn = !icingOn;
+      const btn = document.getElementById('btn-icing');
+      btn.textContent = icingOn ? "ON (+35%)" : "OFF";
+      btn.className = icingOn
+        ? "px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-500/20 text-amber-400 border border-amber-500/40"
+        : "px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-800 text-slate-400 border border-slate-700";
+      calcLanding();
+    }
+
+    function lerp(x, x0, x1, y0, y1) {
+      if (x1 === x0) return y0;
+      return y0 + ((x - x0) / (x1 - x0)) * (y1 - y0);
+    }
+
+    function interp1D(x, xs, ys) {
+      if (x <= xs[0]) return ys[0];
+      if (x >= xs[xs.length - 1]) return ys[ys.length - 1];
+      for (let i = 0; i < xs.length - 1; i++) {
+        if (x >= xs[i] && x <= xs[i + 1]) return lerp(x, xs[i], xs[i + 1], ys[i], ys[i + 1]);
+      }
+      return ys[ys.length - 1];
+    }
+
+    // ==================== MATRICES WAT CALIBRADAS (FIG. 5-11 & FIG. 5-12) ====================
+    // Calibradas con lecturas exactas AFM: a 4,000 ft y 30°C -> Fig. 5-11 = 6,190 kg | Fig. 5-12 = 6,880 kg
+    const watGrid = {
+      alts: [0, 2000, 4000, 6000, 8000, 10000, 12000, 13120],
+      temps: [-50, 0, 15, 20, 25, 30, 35, 40, 45, 50],
+      // Fig. 5-11: 2nd Segment Climb (Flaps 18°, gradiente 2.0%)
+      seg2: {
+        0:     [7000, 7000, 7000, 7000, 7000, 6820, 6540, 6250, 5950, 5650],
+        2000:  [7000, 7000, 7000, 6920, 6710, 6500, 6220, 5930, 5640, 5350],
+        4000:  [7000, 7000, 6850, 6640, 6420, 6190, 5910, 5620, 5340, 5050],
+        6000:  [7000, 6920, 6550, 6340, 6120, 5880, 5600, 5320, 5040, 4760],
+        8000:  [7000, 6610, 6240, 6030, 5810, 5570, 5300, 5020, 4740, 4600],
+        10000: [6900, 6300, 5920, 5710, 5490, 5260, 4990, 4720, 4600, 4600],
+        12000: [6580, 5980, 5600, 5390, 5170, 4940, 4680, 4600, 4600, 4600],
+        13120: [6400, 5800, 5420, 5210, 4990, 4760, 4600, 4600, 4600, 4600]
+      },
+      // Fig. 5-12: Final Segment Climb (Flaps 0°, gradiente 1.2%)
+      finalSeg: {
+        0:     [7000, 7000, 7000, 7000, 7000, 7000, 7000, 6920, 6630, 6340],
+        2000:  [7000, 7000, 7000, 7000, 7000, 7000, 6910, 6620, 6330, 6040],
+        4000:  [7000, 7000, 7000, 7000, 7000, 6880, 6600, 6310, 6020, 5730],
+        6000:  [7000, 7000, 7000, 7000, 6850, 6580, 6290, 6000, 5710, 5420],
+        8000:  [7000, 7000, 6960, 6760, 6550, 6270, 5980, 5690, 5400, 5120],
+        10000: [7000, 6980, 6650, 6450, 6240, 5960, 5670, 5380, 5100, 4820],
+        12000: [7000, 6660, 6330, 6130, 5920, 5640, 5360, 5070, 4800, 4600],
+        13120: [7000, 6480, 6150, 5950, 5740, 5460, 5180, 4900, 4630, 4600]
+      }
+    };
+
+    function getWatWeight(tableObj, pa, oat) {
+      const alts = watGrid.alts;
+      let i0 = 0;
+      for (let i = 0; i < alts.length - 1; i++) {
+        if (pa >= alts[i] && pa <= alts[i + 1]) { i0 = i; break; }
+      }
+      if (pa >= alts[alts.length - 1]) i0 = alts.length - 2;
+      const a0 = alts[i0], a1 = alts[i0 + 1];
+      const w0 = interp1D(oat, watGrid.temps, tableObj[a0]);
+      const w1 = interp1D(oat, watGrid.temps, tableObj[a1]);
+      return Math.round(lerp(pa, a0, a1, w0, w1));
+    }
+
+    // ==================== TAKE-OFF ====================
+    function calcTakeoff() {
+      const elev = parseFloat(document.getElementById('in-elev').value);
+      const qnh = parseFloat(document.getElementById('in-qnh').value);
+      const oat = parseFloat(document.getElementById('in-oat').value);
+      const tow = parseFloat(document.getElementById('in-tow').value);
+      const ratio = parseFloat(document.getElementById('in-ratio').value);
+      const toraIn = parseFloat(document.getElementById('in-tora').value) || 0;
+      const todaIn = parseFloat(document.getElementById('in-toda').value) || 0;
+      const asdaIn = parseFloat(document.getElementById('in-asda').value) || 0;
+      const surfIdx = parseInt(document.getElementById('in-surface').value) || 0;
+      const slope = parseFloat(document.getElementById('in-slope').value);
+
+      let windAxial = 0;
+      let windCross = 0;
+      if (windMetarMode) {
+        let rwyHdg = parseFloat(document.getElementById('in-rwy-hdg').value) || 0;
+        if (rwyHdg > 0 && rwyHdg <= 36) rwyHdg *= 10;
+        const wDir = parseFloat(document.getElementById('in-wind-dir').value) || 0;
+        const wSpd = parseFloat(document.getElementById('in-wind-spd').value) || 0;
+        const rad = ((wDir - rwyHdg) * Math.PI) / 180;
+        windAxial = Math.round(wSpd * Math.cos(rad) * 10) / 10;
+        windCross = Math.round(Math.abs(wSpd * Math.sin(rad)) * 10) / 10;
+      } else {
+        windAxial = parseFloat(document.getElementById('in-wind-direct').value);
+        document.getElementById('val-wind-direct').textContent = windAxial + " kt";
+      }
+
+      document.getElementById('out-wind-head').textContent = (windAxial >= 0 ? "+" : "") + windAxial.toFixed(1) + " kt " + (windAxial >= 0 ? "HW" : "TW");
+      document.getElementById('out-wind-cross').textContent = windCross.toFixed(1) + " kt";
+
+      document.getElementById('val-elev').textContent = elev.toLocaleString() + " ft";
+      document.getElementById('val-qnh').textContent = qnh + " hPa";
+      document.getElementById('val-oat').textContent = (oat >= 0 ? "+" : "") + oat + " °C";
+      document.getElementById('val-tow').textContent = tow.toLocaleString() + " kg (" + Math.round(tow * 2.20462).toLocaleString() + " lb)";
+      document.getElementById('val-ratio').textContent = ratio.toFixed(2);
+      document.getElementById('val-slope').textContent = (slope > 0 ? "+" : "") + slope.toFixed(1) + " %";
+
+      const pa = Math.max(0, elev + (1013.25 - qnh) * 27);
+      const isaTemp = 15 - (pa / 1000) * 1.98;
+      const isaDev = oat - isaTemp;
+      document.getElementById('out-pa').textContent = Math.round(pa).toLocaleString() + " ft";
+      document.getElementById('out-isadev').textContent = "ISA " + (isaDev >= 0 ? "+" : "") + Math.round(isaDev) + " °C";
+
+      const alerts = [];
+      if (slope < -2.0 || slope > 2.0) {
+        alerts.push("⚠️ EXTRAPOLACIÓN DE PENDIENTE (" + slope.toFixed(1) + "%): El AFM (p. 5-20) prohíbe extrapolar pendiente fuera de [-2.0%, +2.0%] sin suplemento.");
+      }
+      if (windAxial < -10) {
+        alerts.push("🚨 VIENTO DE COLA EXCEDIDO (" + windAxial.toFixed(1) + " kt): El límite certificado de cola del AFM es -10 kt.");
+      }
+      if (ratio < 0.88) {
+        alerts.push("ℹ️ RATIO V1/VR (" + ratio.toFixed(2) + "): Extrapolación lineal debajo de 0.88 (límite mínimo 0.80 según p. 5-21).");
+      }
+
+      // Velocidades Fig. 5-29 y Fig. 5-30
+      const vrRaw = tow <= 6200 ? 80 : lerp(tow, 6200, 7000, 80, 85);
+      const v2Raw = tow <= 6250 ? 85 : lerp(tow, 6250, 7000, 85, 90);
+      const vr = Math.round(vrRaw);
+      const v2 = Math.round(v2Raw);
+      const v1 = Math.round(vrRaw * ratio);
+
+      document.getElementById('out-v1').textContent = v1;
+      document.getElementById('out-vr').textContent = vr;
+      document.getElementById('out-v2').textContent = v2;
+
+      const coef = surfaceCoeffsTO[surfIdx] || { to: 1.00, asd: 1.00 };
+      document.getElementById('out-surf-badge').textContent = "Tab 5/II-III: ÷" + coef.to.toFixed(2) + " / ÷" + coef.asd.toFixed(2);
+
+      // Distancias Base OEI (5,600 kg, V1/VR=1.00)
+      const paFactor = pa / 1000;
+      const torBase = (365 + paFactor * 42) * (1 + Math.max(-0.18, isaDev * 0.0068)) * (1 + Math.pow(paFactor / 13.12, 2.1) * 0.65);
+      const todBase = (495 + paFactor * 54) * (1 + Math.max(-0.18, isaDev * 0.0072)) * (1 + Math.pow(paFactor / 13.12, 2.1) * 0.72);
+      const asdBase = (710 + paFactor * 52) * (1 + Math.max(-0.15, isaDev * 0.0055)) * (1 + Math.pow(paFactor / 13.12, 2.0) * 0.45);
+
+      const wDiff = (tow - 5600) / 1000;
+      const hotMult = isaDev > 20 ? 1.24 : (isaDev > -10 ? 1.05 : 0.92);
+      const asdHotMult = isaDev > 20 ? 1.28 : (isaDev > -10 ? 1.05 : 0.94);
+
+      const torWeightMult = wDiff >= 0 ? (1 + wDiff * 0.34 * hotMult + Math.pow(wDiff, 2) * 0.14) : (1 + wDiff * 0.24);
+      const todWeightMult = wDiff >= 0 ? (1 + wDiff * 0.36 * hotMult + Math.pow(wDiff, 2) * 0.15) : (1 + wDiff * 0.25);
+      const asdWeightMult = wDiff >= 0 ? (1 + wDiff * 0.21 * asdHotMult + Math.pow(wDiff, 2) * 0.10) : (1 + wDiff * 0.14);
+
+      const ratioDelta = 1.00 - ratio;
+      const torReq = Math.round(torBase * torWeightMult * (1 + ratioDelta * 1.95));
+      const todReq = Math.round(todBase * todWeightMult * (1 + ratioDelta * 1.85));
+      const asdReq = Math.round(asdBase * asdWeightMult * (1 - ratioDelta * 1.15));
+
+      const effWind = Math.min(38.8, windAxial);
+      const windMultTora = effWind >= 0 ? (1 + (effWind / 40) * 0.18) : (1 + (effWind / 10) * 0.12);
+      const windMultToda = effWind >= 0 ? (1 + (effWind / 40) * 0.22) : (1 + (effWind / 10) * 0.14);
+      const windMultAsda = effWind >= 0 ? (1 + (effWind / 40) * 0.28) : (1 + (effWind / 10) * 0.18);
+
+      const slopeMultTora = 1 - (slope * 0.025);
+      const slopeMultToda = 1 - (slope * 0.044);
+      const slopeMultAsda = 1 + (slope * 0.017);
+
+      const vaneTora = vaneOn ? 0.975 : 1.00;
+      const vaneToda = vaneOn ? 0.970 : 1.00;
+
+      const toraCor = Math.round((toraIn * windMultTora * slopeMultTora * vaneTora) / coef.to);
+      const todaCor = Math.round((todaIn * windMultToda * slopeMultToda * vaneToda) / coef.to);
+      const asdaCor = Math.round((asdaIn * windMultAsda * slopeMultAsda) / coef.asd);
+
+      // Verificación AEO * 1.15 (Fig. 5-31 a 5-34)
+      const wDiffAeo = (7000 - tow) / 1000;
+      const aeoTorBase = (640 + paFactor * 68) * (1 + Math.max(-0.18, isaDev * 0.0068)) * (1 + Math.pow(paFactor / 13.12, 2.1) * 0.65);
+      const aeoTodBase = (780 + paFactor * 82) * (1 + Math.max(-0.18, isaDev * 0.0072)) * (1 + Math.pow(paFactor / 13.12, 2.1) * 0.72);
+      const aeoWeightReduce = Math.max(0.45, 1 - wDiffAeo * 0.23 + Math.pow(wDiffAeo, 2) * 0.025);
+
+      const aeoTorReq = Math.round(aeoTorBase * aeoWeightReduce);
+      const aeoTodReq = Math.round(aeoTodBase * aeoWeightReduce);
+      const vaneAeo = vaneOn ? 0.99 : 1.00;
+      const aeoToraCor = Math.round((toraIn * windMultTora * slopeMultTora * vaneAeo) / coef.to);
+      const aeoTodaCor = Math.round((todaIn * windMultToda * slopeMultToda * vaneAeo) / coef.to);
+
+      // Límites WAT Calibrados (Fig. 5-11 y Fig. 5-12)
+      const wat2 = getWatWeight(watGrid.seg2, pa, oat);
+      const watFto = getWatWeight(watGrid.finalSeg, pa, oat);
+
+      updateDistCard('tor', torReq, toraCor, 'TORA Cor');
+      updateDistCard('tod', todReq, todaCor, 'TODA Cor');
+      updateDistCard('asd', asdReq, asdaCor, 'ASDA Cor');
+
+      // Render AEO * 1.15
+      const cardAeoTor = document.getElementById('card-aeo-tor');
+      const elAeoTor = document.getElementById('out-aeo-tor');
+      elAeoTor.textContent = aeoTorReq.toLocaleString() + " m";
+      elAeoTor.className = aeoTorReq > aeoToraCor ? "text-lg font-bold text-rose-400 mono mt-0.5" : "text-lg font-bold text-emerald-400 mono mt-0.5";
+      cardAeoTor.className = aeoTorReq > aeoToraCor ? "bg-rose-950/40 border border-rose-500/60 rounded-xl p-3" : "bg-slate-900/90 border border-slate-800 rounded-xl p-3";
+      document.getElementById('out-aeo-tora-lim').textContent = "TORA Cor: " + aeoToraCor.toLocaleString() + " m";
+
+      const cardAeoTod = document.getElementById('card-aeo-tod');
+      const elAeoTod = document.getElementById('out-aeo-tod');
+      elAeoTod.textContent = aeoTodReq.toLocaleString() + " m";
+      elAeoTod.className = aeoTodReq > aeoTodaCor ? "text-lg font-bold text-rose-400 mono mt-0.5" : "text-lg font-bold text-emerald-400 mono mt-0.5";
+      cardAeoTod.className = aeoTodReq > aeoTodaCor ? "bg-rose-950/40 border border-rose-500/60 rounded-xl p-3" : "bg-slate-900/90 border border-slate-800 rounded-xl p-3";
+      document.getElementById('out-aeo-toda-lim').textContent = "TODA Cor: " + aeoTodaCor.toLocaleString() + " m";
+
+      document.getElementById('out-wat2').textContent = wat2.toLocaleString() + " kg";
+      document.getElementById('out-watfto').textContent = watFto.toLocaleString() + " kg";
+
+      const cardWat2 = document.getElementById('card-wat2');
+      const outWat2 = document.getElementById('out-wat2');
+      if (tow > wat2) {
+        cardWat2.className = "bg-rose-950/50 border border-rose-500/60 rounded-xl p-3";
+        outWat2.className = "text-xl font-bold text-rose-400 mono mt-0.5";
+        alerts.push("🚨 EXCESO DE PESO WAT 2.º SEGMENTO: TOW (" + tow + " kg) supera límite de " + wat2 + " kg (Fig. 5-11).");
+      } else {
+        cardWat2.className = "bg-slate-900/90 border border-slate-800 rounded-xl p-3";
+        outWat2.className = "text-xl font-bold text-emerald-400 mono mt-0.5";
+      }
+
+      const cardWatFto = document.getElementById('card-watfto');
+      const outWatFto = document.getElementById('out-watfto');
+      if (tow > watFto) {
+        cardWatFto.className = "bg-rose-950/50 border border-rose-500/60 rounded-xl p-3";
+        outWatFto.className = "text-xl font-bold text-rose-400 mono mt-0.5";
+        alerts.push("🚨 EXCESO DE PESO WAT SEGMENTO FINAL: TOW (" + tow + " kg) supera límite de " + watFto + " kg (Fig. 5-12).");
+      } else {
+        cardWatFto.className = "bg-slate-900/90 border border-slate-800 rounded-xl p-3";
+        outWatFto.className = "text-xl font-bold text-emerald-400 mono mt-0.5";
+      }
+
+      if (torReq > toraCor || todReq > todaCor || asdReq > asdaCor || aeoTorReq > aeoToraCor || aeoTodReq > aeoTodaCor) {
+        alerts.push("🚨 LIMITACIÓN DE PISTA: Una o más distancias requeridas (OEI o AEO×1.15) exceden la pista disponible.");
+      }
+
+      document.getElementById('to-alerts').innerHTML = alerts.map(msg =>
+        '<div class="px-3.5 py-2.5 rounded-xl text-xs font-medium ' +
+        (msg.startsWith('🚨') ? 'bg-rose-950/70 border border-rose-500/50 text-rose-200' : 'bg-amber-950/60 border border-amber-500/40 text-amber-200') +
+        '">' + msg + '</div>'
+      ).join('');
+    }
+
+    function updateDistCard(id, req, disp, label) {
+      const card = document.getElementById('card-' + id);
+      const valEl = document.getElementById('out-' + id);
+      const limEl = document.getElementById('out-' + id + 'a-lim');
+      valEl.textContent = req.toLocaleString() + " m";
+      limEl.textContent = label + ": " + disp.toLocaleString() + " m";
+      card.className = req > disp
+        ? "bg-rose-950/40 border border-rose-500/60 rounded-xl p-3"
+        : "bg-slate-900/90 border border-slate-800 rounded-xl p-3";
+      valEl.className = req > disp
+        ? "text-xl font-extrabold text-rose-400 mono"
+        : "text-xl font-extrabold text-emerald-400 mono";
+    }
+
+    // ==================== CRUISE (FIG. 5-10) ====================
+    const cruiseGrid = {
+      alts: [0, 2000, 4000, 6000, 8000, 10000, 12000, 14000, 16000, 18000, 20000],
+      data: {
+        0:     { oats: [-50, -35, -25, -15, -5, 5, 15, 25, 35, 45, 50], trq: [122.0, 117.0, 114.0, 110.5, 107.0, 103.5, 100.0, 96.5, 93.0, 89.5, 87.8] },
+        2000:  { oats: [-50, -39, -29, -19, -9, 1, 11, 21, 31, 41, 46], trq: [117.5, 114.0, 110.8, 107.5, 104.0, 100.5, 97.2, 93.8, 90.2, 86.5, 84.8] },
+        4000:  { oats: [-50, -43, -33, -23, -13, -3, 7, 17, 27, 37, 42], trq: [113.0, 110.5, 107.5, 104.2, 100.8, 97.4, 94.0, 90.5, 87.0, 83.2, 81.2] },
+        6000:  { oats: [-50, -47, -37, -27, -17, -7, 3, 13, 23, 33, 38], trq: [108.5, 107.0, 104.2, 101.0, 97.6, 94.2, 90.8, 87.2, 83.5, 79.6, 77.5] },
+        8000:  { oats: [-50, -41, -31, -21, -11, -1, 9, 19, 29, 34],      trq: [103.5, 100.8, 97.5, 94.2, 90.8, 87.4, 83.8, 80.2, 76.2, 74.0] },
+        10000: { oats: [-50, -45, -35, -25, -15, -5, 5, 15, 25, 30],      trq: [99.0, 97.5, 94.2, 91.0, 87.5, 84.1, 80.5, 76.8, 72.8, 70.6] },
+        12000: { oats: [-50, -49, -39, -29, -19, -9, 1, 11, 21, 26],      trq: [94.2, 94.0, 90.8, 87.5, 84.2, 80.6, 77.0, 73.2, 69.2, 67.0] },
+        14000: { oats: [-50, -43, -33, -23, -13, -3, 7, 17, 22],           trq: [89.5, 87.4, 84.2, 80.8, 77.2, 73.5, 69.8, 65.8, 63.6] },
+        16000: { oats: [-50, -47, -37, -27, -17, -7, 3, 13, 18],           trq: [84.8, 84.0, 80.8, 77.5, 74.0, 70.2, 66.4, 62.5, 60.4] },
+        18000: { oats: [-50, -41, -31, -21, -11, -1, 9, 14],                trq: [80.2, 77.5, 74.2, 70.8, 67.0, 63.2, 59.5, 57.5] },
+        20000: { oats: [-50, -45, -35, -25, -15, -5, 5, 10],                trq: [75.8, 74.2, 71.0, 67.5, 63.8, 60.0, 56.2, 54.4] }
+      }
+    };
+
+    function getCruiseRefTorque(pa, oat) {
+      const alts = cruiseGrid.alts;
+      let i0 = 0;
+      for (let i = 0; i < alts.length - 1; i++) {
+        if (pa >= alts[i] && pa <= alts[i + 1]) { i0 = i; break; }
+      }
+      const a0 = alts[i0], a1 = alts[i0 + 1];
+      const d0 = cruiseGrid.data[a0], d1 = cruiseGrid.data[a1];
+      return lerp(pa, a0, a1, interp1D(oat, d0.oats, d0.trq), interp1D(oat, d1.oats, d1.trq));
+    }
+
+    function calcCruise() {
+      const pa = parseFloat(document.getElementById('in-crz-pa').value);
+      const oat = parseFloat(document.getElementById('in-crz-oat').value);
+      const kias = parseFloat(document.getElementById('in-crz-kias').value);
+
+      document.getElementById('val-crz-pa').textContent = pa.toLocaleString() + " ft (" + Math.round(pa * 0.3048).toLocaleString() + " m)";
+      document.getElementById('val-crz-oat').textContent = (oat >= 0 ? "+" : "") + oat + " °C";
+      document.getElementById('val-crz-kias').textContent = kias + " KIAS";
+
+      const isaTemp = 15 - (pa / 1000) * 1.98;
+      const isaDev = oat - isaTemp;
+      document.getElementById('out-crz-isadev').textContent = "ISA " + (isaDev >= 0 ? "+" : "") + Math.round(isaDev) + " °C";
+
+      const crzAlerts = [];
+      if (isaDev > 35 || isaDev < -40) {
+        crzAlerts.push("⚠️ FUERA DE ENVOLVENTE TÉRMICA: La OAT excede los límites ISA -40°C a ISA +35°C de la Fig. 5-10.");
+      }
+
+      const refTorque = getCruiseRefTorque(pa, oat);
+      const kiasSlope = 0.088 + (refTorque - 60) * 0.00025;
+      const kiasCorr = (kias - 146) * kiasSlope;
+      const rawTorque = refTorque + kiasCorr;
+      const isCapped = rawTorque > 100.0;
+      const finalTorque = Math.min(100.0, Math.max(55.0, rawTorque));
+      const tas = Math.round(kias * (1 + (pa / 1000) * 0.0175 + (isaDev * 0.0018)));
+
+      document.getElementById('out-crz-ref').textContent = refTorque.toFixed(1) + " %";
+      document.getElementById('out-crz-kiascorr').textContent = (kiasCorr >= 0 ? "+" : "") + kiasCorr.toFixed(1) + " %";
+      document.getElementById('out-crz-tas').textContent = tas + " KTAS";
+
+      const torqueEl = document.getElementById('out-crz-torque');
+      const statusEl = document.getElementById('out-crz-status');
+
+      if (isCapped) {
+        torqueEl.textContent = "100.0 %";
+        torqueEl.className = "text-6xl font-black text-amber-400 mono mt-2";
+        statusEl.textContent = "Limitado a Torque Máximo (Cálculo bruto: " + rawTorque.toFixed(1) + "%)";
+        statusEl.className = "text-xs text-amber-300 font-semibold mt-2";
+      } else {
+        torqueEl.textContent = finalTorque.toFixed(1) + " %";
+        torqueEl.className = "text-6xl font-black text-emerald-400 mono mt-2";
+        statusEl.textContent = "Cruise Rating • 1,700 RPM • Heating & De-ice OFF";
+        statusEl.className = "text-xs text-slate-400 mt-2";
+      }
+
+      document.getElementById('crz-alerts').innerHTML = crzAlerts.map(msg =>
+        '<div class="px-3.5 py-2.5 rounded-xl text-xs font-medium bg-amber-950/60 border border-amber-500/40 text-amber-200">' + msg + '</div>'
+      ).join('');
+    }
+
+    // ==================== LANDING (FIG. 5-88 & 5-89) ====================
+    function calcLanding() {
+      const elev = parseFloat(document.getElementById('in-ldg-elev').value);
+      const qnh = parseFloat(document.getElementById('in-ldg-qnh').value);
+      const oat = parseFloat(document.getElementById('in-ldg-oat').value);
+      const ldw = parseFloat(document.getElementById('in-ldw').value);
+      const lda = parseFloat(document.getElementById('in-lda').value) || 0;
+      const surfMult = parseFloat(document.getElementById('in-ldg-surface').value);
+      const wind = parseFloat(document.getElementById('in-ldg-wind').value);
+      const slope = parseFloat(document.getElementById('in-ldg-slope').value);
+
+      document.getElementById('val-ldg-elev').textContent = elev.toLocaleString() + " ft";
+      document.getElementById('val-ldg-qnh').textContent = qnh + " hPa";
+      document.getElementById('val-ldg-oat').textContent = (oat >= 0 ? "+" : "") + oat + " °C";
+      document.getElementById('val-ldw').textContent = ldw.toLocaleString() + " kg (" + Math.round(ldw * 2.20462).toLocaleString() + " lb)";
+      document.getElementById('val-ldg-wind').textContent = wind === 0 ? "0 kt (Calm)" : (wind > 0 ? "+" + wind + " kt HW" : wind + " kt TW");
+      document.getElementById('val-ldg-slope').textContent = (slope > 0 ? "+" : "") + slope.toFixed(1) + " %";
+
+      const pa = Math.max(0, elev + (1013.25 - qnh) * 27);
+      const isaTemp = 15 - (pa / 1000) * 1.98;
+      const isaDev = oat - isaTemp;
+      document.getElementById('out-ldg-pa').textContent = Math.round(pa).toLocaleString() + " ft";
+      document.getElementById('out-ldg-isadev').textContent = "ISA " + (isaDev >= 0 ? "+" : "") + Math.round(isaDev) + " °C";
+      document.getElementById('out-ldg-badge').textContent = "Factor: " + ldgFactor.toFixed(2) + " (" + (ldgFactor === 1.67 ? "Destino" : "Alterno") + ")";
+
+      const ldgAlerts = [];
+      if (slope < -2.0 || slope > 2.0) {
+        ldgAlerts.push("⚠️ EXTRAPOLACIÓN DE PENDIENTE (" + slope.toFixed(1) + "%): El AFM (p. 5-126) prohíbe extrapolar pendiente fuera de [-2.0%, +2.0%].");
+      }
+      if (wind < -10) {
+        ldgAlerts.push("🚨 VIENTO DE COLA EXCEDIDO (" + wind + " kt): Límite AFM -10 kt.");
+      }
+
+      const paFactor = pa / 1000;
+      const base167 = (905 + paFactor * 36) * (1 + Math.max(-0.14, isaDev * 0.0029));
+
+      const effWeight = Math.max(5200, ldw);
+      const wReduce = 1 - ((6800 - effWeight) / 1600) * 0.145;
+
+      const effWind = Math.min(38.8, wind);
+      const windMult = effWind >= 0 ? (1 - (effWind / 40) * 0.25) : (1 + (Math.abs(effWind) / 10) * 0.19);
+      const slopeMult = slope <= 0 ? (1 + Math.abs(slope) * 0.075) : (1 - slope * 0.025);
+
+      const corr167 = base167 * wReduce * windMult * slopeMult;
+      const factorScale = ldgFactor / 1.67;
+      const icingMult = icingOn ? 1.35 : 1.00;
+
+      const ldrFinal = Math.round(corr167 * factorScale * surfMult * icingMult);
+      const actualDistance = Math.round((corr167 / 1.67) * surfMult * icingMult);
+      const margin = lda - ldrFinal;
+
+      document.getElementById('out-ldg-base').textContent = Math.round(base167 * factorScale) + " m";
+      document.getElementById('out-ldg-corr').textContent = Math.round(corr167 * factorScale) + " m";
+      document.getElementById('out-ldg-actual').textContent = actualDistance + " m";
+
+      const ldrEl = document.getElementById('out-ldr');
+      const cardLdr = document.getElementById('card-ldr');
+      const compEl = document.getElementById('out-lda-comp');
+
+      ldrEl.textContent = ldrFinal.toLocaleString() + " m";
+      compEl.textContent = "LDA Disponible: " + lda.toLocaleString() + " m (Margen: " + (margin >= 0 ? "+" : "") + margin.toLocaleString() + " m)";
+
+      if (ldrFinal > lda) {
+        cardLdr.className = "my-4 text-center bg-rose-950/50 border border-rose-500/60 rounded-2xl p-6";
+        ldrEl.className = "text-5xl font-black text-rose-400 mono mt-2";
+        ldgAlerts.push("🚨 PISTA INSUFICIENTE PARA ATERRIZAJE: LDR (" + ldrFinal + " m) excede LDA (" + lda + " m) por " + Math.abs(margin) + " m.");
+      } else {
+        cardLdr.className = "my-4 text-center bg-slate-900/90 border border-slate-800 rounded-2xl p-6";
+        ldrEl.className = "text-5xl font-black text-emerald-400 mono mt-2";
+      }
+
+      document.getElementById('ldg-alerts').innerHTML = ldgAlerts.map(msg =>
+        '<div class="px-3.5 py-2.5 rounded-xl text-xs font-medium ' +
+        (msg.startsWith('🚨') ? 'bg-rose-950/70 border border-rose-500/50 text-rose-200' : 'bg-amber-950/60 border border-amber-500/40 text-amber-200') +
+        '">' + msg + '</div>'
+      ).join('');
+    }
+
+    // Ejecutar cálculo inicial al cargar
+    window.addEventListener('DOMContentLoaded', () => {
+      calcTakeoff();
+      calcCruise();
+      calcLanding();
+    });
+  </script>
 </body>
 </html>
